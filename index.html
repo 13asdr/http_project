@@ -16,6 +16,38 @@
         font-family: sans-serif;
       }
 
+      .category-card {
+        background: #242424;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .category-card h2 {
+        font-size: 14px;
+        font-weight: 500;
+        color: #ccc;
+        margin-bottom: 1rem;
+      }
+      .category-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .category-item {
+        background: #1a1a1a;
+        border-radius: 8px;
+        padding: 10px 14px;
+      }
+      .category-item .cat-name {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 4px;
+      }
+      .category-item .cat-amount {
+        font-size: 16px;
+        font-weight: 500;
+        color: #f87171;
+      }
       .app {
         max-width: 720px;
         margin: 0 auto;
@@ -262,6 +294,26 @@
         font-size: 13px;
         cursor: pointer;
       }
+
+      .btn-edit {
+        background: none;
+        border: none;
+        color: #555;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .btn-edit:hover {
+        color: #a0a0f0;
+        background: #202030;
+      }
+      .form-card h2 span {
+        font-size: 12px;
+        color: #666;
+        margin-left: 8px;
+        font-weight: 400;
+      }
     </style>
   </head>
 
@@ -284,6 +336,10 @@
         <div class="stat-card">
           <div class="label">结余</div>
           <div class="value balance" id="total-balance">¥0</div>
+        </div>
+        <div class="category-card">
+          <h2>支出分类</h2>
+          <div class="category-list" id="category-list"></div>
         </div>
       </div>
 
@@ -312,7 +368,22 @@
             <input type="date" id="time" />
           </div>
         </div>
-        <button class="btn-submit" onclick="addRecord()">添加记录</button>
+        <div class="form-row">
+          <div class="form-group">
+            <label>分类</label>
+            <select id="category">
+              <option value="餐饮">餐饮</option>
+              <option value="交通">交通</option>
+              <option value="娱乐">娱乐</option>
+              <option value="购物">购物</option>
+              <option value="医疗">医疗</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-submit" id="submit-btn" onclick="submitRecord()">
+          添加记录
+        </button>
       </div>
 
       <div class="list-card">
@@ -331,6 +402,80 @@
 
     <script>
       const API = "http://localhost:8080";
+
+      let editingId = null;
+
+      async function loadCategoryStats() {
+        const res = await fetch(`${API}/record/statByCategory`);
+        const data = await res.json();
+
+        const container = document.getElementById("category-list");
+        if (data.length === 0) {
+          container.innerHTML = '<p class="empty">暂无数据</p>';
+          return;
+        }
+        container.innerHTML = data
+          .map(
+            (item) => `
+    <div class="category-item">
+      <div class="cat-name">${item.category}</div>
+      <div class="cat-amount">-¥${item.total.toFixed(2)}</div>
+    </div>
+  `,
+          )
+          .join("");
+      }
+      function startEdit(id, amount, type, note, time, category) {
+        editingId = id;
+        document.getElementById("amount").value = amount;
+        document.getElementById("type").value = type;
+        document.getElementById("note").value = note;
+        document.getElementById("time").value = time;
+        document.getElementById("category").value = category;
+
+        const btn = document.getElementById("submit-btn");
+        btn.textContent = "保存修改";
+
+        // 滚动到表单
+        document
+          .querySelector(".form-card")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+
+      function submitRecord() {
+        if (editingId !== null) {
+          updateRecord();
+        } else {
+          addRecord();
+        }
+      }
+
+      async function updateRecord() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const type = document.getElementById("type").value;
+        const note = document.getElementById("note").value;
+        const time = document.getElementById("time").value;
+        const category = document.getElementById("category").value;
+
+        if (!amount || !note || !time) {
+          alert("请填写完整信息");
+          return;
+        }
+
+        await fetch(`${API}/record/update?id=${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount, type, note, time, category }),
+        });
+
+        // 重置表单状态
+        editingId = null;
+        document.getElementById("submit-btn").textContent = "添加记录";
+        document.getElementById("amount").value = "";
+        document.getElementById("note").value = "";
+        document.getElementById("category").value = "餐饮";
+        loadRecords();
+      }
 
       function filterByMonth() {
         const month = document.getElementById("filter-month").value;
@@ -363,6 +508,7 @@
         const data = await res.json();
         renderList(data);
         renderStats(data);
+        loadCategoryStats(); // ← 加这行
       }
 
       // 渲染列表
@@ -375,20 +521,21 @@
         container.innerHTML = records
           .map(
             (r) => `
-      <div class="record-item">
-        <div class="record-left">
-          <span class="record-note">${r.note}</span>
-          <span class="record-meta">${r.time}</span>
-        </div>
-        <div class="record-right">
-          <span class="badge ${r.type === "支出" ? "badge-expense" : "badge-income"}">${r.type}</span>
-          <span class="record-amount ${r.type === "支出" ? "amount-expense" : "amount-income"}">
-            ${r.type === "支出" ? "-" : "+"}¥${r.amount.toFixed(2)}
-          </span>
-          <button class="btn-del" onclick="deleteRecord(${r.id})">✕</button>
-        </div>
-      </div>
-    `,
+  <div class="record-item">
+    <div class="record-left">
+      <span class="record-note">${r.note}</span>
+      <span class="record-meta">${r.time}</span>
+    </div>
+    <div class="record-right">
+      <span class="badge ${r.type === "支出" ? "badge-expense" : "badge-income"}">${r.type}</span>
+      <span class="record-amount ${r.type === "支出" ? "amount-expense" : "amount-income"}">
+        ${r.type === "支出" ? "-" : "+"}¥${r.amount.toFixed(2)}
+      </span>
+      <button class="btn-edit" onclick="startEdit(${r.id}, ${r.amount}, '${r.type}', '${r.note}', '${r.time}', '${r.category}')">编辑</button>
+      <button class="btn-del" onclick="deleteRecord(${r.id})">✕</button>
+    </div>
+  </div>
+`,
           )
           .join("");
       }
@@ -415,6 +562,7 @@
         const type = document.getElementById("type").value;
         const note = document.getElementById("note").value;
         const time = document.getElementById("time").value;
+        const category = document.getElementById("category").value;
 
         if (!amount || !note || !time) {
           alert("请填写完整信息");
@@ -424,18 +572,31 @@
         await fetch(`${API}/record/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount, type, note, time }),
+          body: JSON.stringify({ amount, type, note, time, category }),
         });
 
         // 清空表单，重新加载
         document.getElementById("amount").value = "";
         document.getElementById("note").value = "";
+        document.getElementById("category").value = "餐饮";
         loadRecords();
       }
 
       // 删除记录
       async function deleteRecord(id) {
-        await fetch(`${API}/record/delete?id=${id}`, { method: "DELETE" });
+        const btn = document.querySelector(
+          `.btn-del[onclick="deleteRecord(${id})"]`,
+        );
+        const item = btn.closest(".record-item");
+        item.style.transition = "opacity 0.2s";
+        item.style.opacity = "0";
+
+        // 等动画结束、请求完成，再刷新
+        await Promise.all([
+          fetch(`${API}/record/delete?id=${id}`, { method: "DELETE" }),
+          new Promise((resolve) => setTimeout(resolve, 200)),
+        ]);
+
         loadRecords();
       }
     </script>

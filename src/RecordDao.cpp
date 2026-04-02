@@ -9,11 +9,12 @@ bool RecordDao::add(const Record &record)
 {
     std::ostringstream sql;
 
-    sql << "INSERT INTO records (amount, note, type, time) VALUES ("
+    sql << "INSERT INTO records (amount, note, type, time, category) VALUES ("
         << record.amount << ","
         << "'" << record.note << "',"
         << "'" << record.type << "',"
-        << "'" << record.time << "')";
+        << "'" << record.time << "',"
+        << "'" << record.category << "')";
 
     return db.execute(sql.str());
 }
@@ -21,7 +22,7 @@ bool RecordDao::add(const Record &record)
 std::vector<Record> RecordDao::list()
 {
     std::vector<Record> result;
-    MYSQL_RES *res = db.query("SELECT id, amount, note, type, time FROM records ORDER BY time DESC");
+    MYSQL_RES *res = db.query("SELECT id, amount, note, type, time, category FROM records ORDER BY time DESC");
 
     if (!res)
     {
@@ -37,6 +38,7 @@ std::vector<Record> RecordDao::list()
         r.note = row[2];
         r.type = row[3];
         r.time = row[4];
+        r.category = row[5];
         result.push_back(r);
     }
     mysql_free_result(res);
@@ -48,7 +50,7 @@ std::vector<Record> RecordDao::listByMonth(const std::string &month_type)
     std::vector<Record> result;
 
     std::ostringstream sql;
-    sql << "SELECT id, amount, note, type, time FROM records "
+    sql << "SELECT id, amount, note, type, time, category FROM records "
         << "WHERE DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' "
         << "ORDER BY time DESC";
 
@@ -65,10 +67,39 @@ std::vector<Record> RecordDao::listByMonth(const std::string &month_type)
         r.note = row[2];
         r.type = row[3];
         r.time = row[4];
+        r.category = row[5];
         result.push_back(r);
     }
     mysql_free_result(res);
     return result;
+}
+
+std::map<std::string, double> RecordDao::statByCategory()
+{
+    std::map<std::string, double> result;
+    MYSQL_RES *res = db.query("SELECT category, SUM(amount) AS total FROM records where type = '支出' GROUP BY category");
+    if (!res)
+        return result;
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(res)) != nullptr)
+    {
+        result.try_emplace(row[0], std::stod(row[1]));
+    }
+    mysql_free_result(res);
+    return result;
+}
+
+bool RecordDao::update(int id, const Record &record)
+{
+    std::ostringstream sql;
+    sql << "UPDATE records set amount = " << record.amount << ","
+        << "note = '" << record.note << "',"
+        << "type = '" << record.type << "',"
+        << "time = '" << record.time << "',"
+        << "category = '" << record.category << "' "
+        << "WHERE id = " << id;
+
+    return db.execute(sql.str());
 }
 
 bool RecordDao::remove(int id)

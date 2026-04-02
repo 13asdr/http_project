@@ -23,7 +23,10 @@ int main()
                         r.note = j["note"];
                         r.type = j["type"];
                         r.time = j["time"];
+                        r.category = j["category"];
 
+                        std::cout << "category: " << r.category << std::endl;
+                        
                         nlohmann::json result;
                         if (dao.add(r))
                         {
@@ -57,6 +60,21 @@ int main()
             item["note"]   = r.note;
             item["type"]   = r.type;
             item["time"]   = r.time;
+            item["category"]   = r.category;
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json"); });
+
+    // 查询每个类别别的总金额 GET /record/statByCategory
+    server.Get("/record/statByCategory", [&dao](const httplib::Request &req, httplib::Response &res)
+               {
+        auto records = dao.statByCategory();
+
+        nlohmann::json result = nlohmann::json::array();        //result 是一个数组
+        for (const auto&[key,value] : records) {
+            nlohmann::json item;
+            item["category"]   = key;
+            item["total"] = value;
             result.push_back(item);
         }
         res.set_content(result.dump(), "application/json"); });
@@ -75,9 +93,33 @@ int main()
         item["note"]   = r.note;
         item["type"]   = r.type;
         item["time"]   = r.time;
+        item["category"]   = r.category;
         result.push_back(item);
     }
     res.set_content(result.dump(), "application/json"); });
+
+    // 更新函数
+    server.Put("/record/update", [&dao](const httplib::Request &req, httplib::Response &res)
+               {
+        int id = std::stoi(req.get_param_value("id"));  
+        auto j = nlohmann::json::parse(req.body);   // parse ,将字符串转换成对象
+        
+        Record r;
+        r.amount = j["amount"];
+        r.note = j["note"];
+        r.type = j["type"];
+        r.time = j["time"];
+        r.category = j["category"];
+
+        nlohmann::json result;      //前后端都返回JSON对象
+        if (dao.update(id, r)) {
+            result["status"]  = "ok";
+            result["message"] = "更新成功";
+        } else {
+            result["status"]  = "error";
+            result["message"] = "更新失败";
+        }
+        res.set_content(result.dump(), "application/json"); });
 
     // 删除记录 DELETE /record/delete?id=1
     server.Delete("/record/delete", [&dao](const httplib::Request &req, httplib::Response &res)
@@ -96,7 +138,7 @@ int main()
 
     // 允许所有跨域请求
     server.set_default_headers({{"Access-Control-Allow-Origin", "*"},
-                                {"Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS"},
+                                {"Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"},
                                 {"Access-Control-Allow-Headers", "Content-Type"}});
 
     // 处理 OPTIONS 预检请求
