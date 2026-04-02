@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>记账系统</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+        font-family: sans-serif;
+      }
+
+      .app {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+      }
+
+      .header {
+        margin-bottom: 1.5rem;
+      }
+
+      .header h1 {
+        font-size: 20px;
+        font-weight: 500;
+        color: #f0f0f0;
+      }
+
+      .header p {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 1.5rem;
+      }
+
+      .stat-card {
+        background: #242424;
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+
+      .stat-card .label {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 6px;
+      }
+
+      .stat-card .value {
+        font-size: 22px;
+        font-weight: 500;
+      }
+
+      .value.income {
+        color: #4ade80;
+      }
+
+      .value.expense {
+        color: #f87171;
+      }
+
+      .value.balance {
+        color: #60a5fa;
+      }
+
+      .form-card,
+      .list-card {
+        background: #242424;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-card h2,
+      .list-card h2 {
+        font-size: 14px;
+        font-weight: 500;
+        color: #ccc;
+        margin-bottom: 1rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 5px;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        background: #1a1a1a;
+        border: 0.5px solid #3a3a3a;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 13px;
+        color: #e0e0e0;
+        outline: none;
+      }
+
+      .form-group select option {
+        background: #1a1a1a;
+      }
+
+      .btn-submit {
+        width: 100%;
+        margin-top: 12px;
+        padding: 9px;
+        background: #2a2a3a;
+        border: 0.5px solid #444;
+        border-radius: 8px;
+        color: #a0a0f0;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .btn-submit:hover {
+        background: #32324a;
+      }
+
+      .record-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 0.5px solid #2e2e2e;
+      }
+
+      .record-item:last-child {
+        border-bottom: none;
+      }
+
+      .record-left {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .record-note {
+        font-size: 14px;
+        color: #e0e0e0;
+      }
+
+      .record-meta {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .record-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .record-amount {
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .amount-expense {
+        color: #f87171;
+      }
+
+      .amount-income {
+        color: #4ade80;
+      }
+
+      .badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 20px;
+      }
+
+      .badge-expense {
+        background: #2e1f1f;
+        color: #f87171;
+      }
+
+      .badge-income {
+        background: #1f2e1f;
+        color: #4ade80;
+      }
+
+      .btn-del {
+        background: none;
+        border: none;
+        color: #555;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+
+      .btn-del:hover {
+        color: #f87171;
+        background: #2e2020;
+      }
+
+      .empty {
+        font-size: 13px;
+        color: #555;
+        text-align: center;
+        padding: 1rem 0;
+      }
+
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem;
+      }
+
+      .filter-bar label {
+        font-size: 12px;
+        color: #888;
+      }
+
+      .filter-bar input {
+        background: #1a1a1a;
+        border: 0.5px solid #3a3a3a;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 13px;
+        color: #e0e0e0;
+        outline: none;
+      }
+
+      .btn-filter {
+        padding: 6px 14px;
+        background: #2a2a3a;
+        border: 0.5px solid #444;
+        border-radius: 8px;
+        color: #a0a0f0;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .btn-reset {
+        padding: 6px 14px;
+        background: none;
+        border: 0.5px solid #3a3a3a;
+        border-radius: 8px;
+        color: #666;
+        font-size: 13px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app">
+      <div class="header">
+        <h1>记账系统</h1>
+        <p>accounting server · localhost:8080</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">收入</div>
+          <div class="value income" id="total-income">¥0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">支出</div>
+          <div class="value expense" id="total-expense">¥0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">结余</div>
+          <div class="value balance" id="total-balance">¥0</div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>添加记录</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>金额</label>
+            <input type="number" id="amount" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label>类型</label>
+            <select id="type">
+              <option value="支出">支出</option>
+              <option value="收入">收入</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>备注</label>
+            <input type="text" id="note" placeholder="备注说明" />
+          </div>
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="time" />
+          </div>
+        </div>
+        <button class="btn-submit" onclick="addRecord()">添加记录</button>
+      </div>
+
+      <div class="list-card">
+        <h2>记录列表</h2>
+        <div id="record-list">
+          <p class="empty">暂无记录</p>
+        </div>
+        <div class="filter-bar">
+          <label>月份</label>
+          <input type="month" id="filter-month" />
+          <button class="btn-filter" onclick="filterByMonth()">筛选</button>
+          <button class="btn-reset" onclick="resetFilter()">重置</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://localhost:8080";
+
+      function filterByMonth() {
+        const month = document.getElementById("filter-month").value;
+        if (!month) {
+          alert("请选择月份");
+          return;
+        }
+        fetch(`${API}/record/listByMonth?month=${month}`)
+          .then((res) => res.json())
+          .then((data) => {
+            renderList(data);
+            renderStats(data);
+          });
+      }
+
+      function resetFilter() {
+        document.getElementById("filter-month").value = "";
+        loadRecords();
+      }
+
+      // 页面加载时自动拉取数据
+      window.onload = () => {
+        document.getElementById("time").valueAsDate = new Date();
+        loadRecords();
+      };
+
+      // 拉取所有记录
+      async function loadRecords() {
+        const res = await fetch(`${API}/record/list`);
+        const data = await res.json();
+        renderList(data);
+        renderStats(data);
+      }
+
+      // 渲染列表
+      function renderList(records) {
+        const container = document.getElementById("record-list");
+        if (records.length === 0) {
+          container.innerHTML = '<p class="empty">暂无记录</p>';
+          return;
+        }
+        container.innerHTML = records
+          .map(
+            (r) => `
+      <div class="record-item">
+        <div class="record-left">
+          <span class="record-note">${r.note}</span>
+          <span class="record-meta">${r.time}</span>
+        </div>
+        <div class="record-right">
+          <span class="badge ${r.type === "支出" ? "badge-expense" : "badge-income"}">${r.type}</span>
+          <span class="record-amount ${r.type === "支出" ? "amount-expense" : "amount-income"}">
+            ${r.type === "支出" ? "-" : "+"}¥${r.amount.toFixed(2)}
+          </span>
+          <button class="btn-del" onclick="deleteRecord(${r.id})">✕</button>
+        </div>
+      </div>
+    `,
+          )
+          .join("");
+      }
+
+      // 渲染统计
+      function renderStats(records) {
+        let income = 0,
+          expense = 0;
+        records.forEach((r) => {
+          if (r.type === "收入") income += r.amount;
+          else expense += r.amount;
+        });
+        document.getElementById("total-income").textContent =
+          `¥${income.toFixed(2)}`;
+        document.getElementById("total-expense").textContent =
+          `¥${expense.toFixed(2)}`;
+        document.getElementById("total-balance").textContent =
+          `¥${(income - expense).toFixed(2)}`;
+      }
+
+      // 添加记录
+      async function addRecord() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const type = document.getElementById("type").value;
+        const note = document.getElementById("note").value;
+        const time = document.getElementById("time").value;
+
+        if (!amount || !note || !time) {
+          alert("请填写完整信息");
+          return;
+        }
+
+        await fetch(`${API}/record/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount, type, note, time }),
+        });
+
+        // 清空表单，重新加载
+        document.getElementById("amount").value = "";
+        document.getElementById("note").value = "";
+        loadRecords();
+      }
+
+      // 删除记录
+      async function deleteRecord(id) {
+        await fetch(`${API}/record/delete?id=${id}`, { method: "DELETE" });
+        loadRecords();
+      }
+    </script>
+  </body>
+</html>

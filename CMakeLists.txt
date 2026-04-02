@@ -16,10 +16,15 @@ set(MYSQL_INCLUDE_DIR "C:/Program Files/MySQL/MySQL Server 8.0/include")
 set(MYSQL_LIB_DIR     "C:/Program Files/MySQL/MySQL Server 8.0/lib")
 
 # 可执行文件
-add_executable(AccountingServer main.cpp)
+add_executable(AccountingServer
+    main.cpp
+    src/RecordDao.cpp
+    src/DBconnect.cpp
+)
 
 # 头文件路径
 target_include_directories(AccountingServer PRIVATE
+    ${PROJECT_SOURCE_DIR}/include  
     ${PROJECT_SOURCE_DIR}/third_party   # httplib.h 在这里
     ${MYSQL_INCLUDE_DIR}
 )
