@@ -31,6 +31,9 @@ public:
     std::vector<Record> listByMonth(const std::string &month_type);
     std::map<std::string, double> statByCategory(); // 查询每个类别别的总金额
 
+    // 查找记录
+    std::vector<Record> search(const std::string &keyword);
+
     // 更新
     bool update(int id, const Record &record);
 

@@ -98,6 +98,25 @@ int main()
     }
     res.set_content(result.dump(), "application/json"); });
 
+    // 模糊查询
+    server.Get("/record/search", [&dao](const httplib::Request &req, httplib::Response &res)
+               {
+    std::string keyword = req.get_param_value("search");
+
+    nlohmann::json result = nlohmann::json::array();
+    for (auto& r : dao.search(keyword))
+    {
+        nlohmann::json item;
+        item["id"]     = r.id;
+        item["amount"] = r.amount;
+        item["note"]   = r.note;
+        item["type"]   = r.type;
+        item["time"]   = r.time;
+        item["category"]   = r.category;
+        result.push_back(item);
+    }
+    res.set_content(result.dump(), "application/json"); });
+
     // 更新函数
     server.Put("/record/update", [&dao](const httplib::Request &req, httplib::Response &res)
                {

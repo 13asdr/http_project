@@ -89,6 +89,34 @@ std::map<std::string, double> RecordDao::statByCategory()
     return result;
 }
 
+std::vector<Record> RecordDao::search(const std::string &keyword)
+{
+    std::vector<Record> result;
+    std::ostringstream sql;
+    sql << "SELECT id,amount, note, type, time, category FROM records "
+        << "WHERE note LIKE '%" << keyword << "% "
+        << "ORDER BY time DESC ";
+
+    MYSQL_RES *res = db.query(sql.str());
+    if (!res)
+        return result;
+
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(res)) != nullptr)
+    {
+        Record r;
+        r.id = std::stoi(row[0]);
+        r.amount = std::stod(row[1]);
+        r.note = row[2];
+        r.type = row[3];
+        r.time = row[4];
+        r.category = row[5];
+        result.push_back(r);
+    }
+    mysql_free_result(res);
+    return result;
+}
+
 bool RecordDao::update(int id, const Record &record)
 {
     std::ostringstream sql;

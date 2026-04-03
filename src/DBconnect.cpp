@@ -46,6 +46,7 @@ MYSQL_RES *DBconnect::query(const std::string &sql)
     return mysql_store_result(conn);
 }
 
+
 bool DBconnect::execute(const std::string &sql)
 {
     if (mysql_ping(conn)) // 连接失败
