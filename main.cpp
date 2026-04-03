@@ -101,7 +101,8 @@ int main()
     // 模糊查询
     server.Get("/record/search", [&dao](const httplib::Request &req, httplib::Response &res)
                {
-    std::string keyword = req.get_param_value("search");
+    std::string keyword = req.get_param_value("keyword");   
+    //http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
 
     nlohmann::json result = nlohmann::json::array();
     for (auto& r : dao.search(keyword))

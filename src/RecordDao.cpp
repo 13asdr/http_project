@@ -94,7 +94,7 @@ std::vector<Record> RecordDao::search(const std::string &keyword)
     std::vector<Record> result;
     std::ostringstream sql;
     sql << "SELECT id,amount, note, type, time, category FROM records "
-        << "WHERE note LIKE '%" << keyword << "% "
+        << "WHERE note LIKE '%" << keyword << "%' "
         << "ORDER BY time DESC ";
 
     MYSQL_RES *res = db.query(sql.str());
