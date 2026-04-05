@@ -20,12 +20,13 @@ add_executable(AccountingServer
     main.cpp
     src/RecordDao.cpp
     src/DBconnect.cpp
+    src/handler.cpp
 )
 
 # 头文件路径
 target_include_directories(AccountingServer PRIVATE
     ${PROJECT_SOURCE_DIR}/include  
-    ${PROJECT_SOURCE_DIR}/third_party   # httplib.h 在这里
+    ${PROJECT_SOURCE_DIR}/third_party   # httplib.h 在这里  //设置头文件搜索的起点
     ${MYSQL_INCLUDE_DIR}
 )
 

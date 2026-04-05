@@ -27,12 +27,13 @@ public:
     bool add(const Record &record);
 
     // 查询记录
-    std::vector<Record> list();
-    std::vector<Record> listByMonth(const std::string &month_type);
-    std::map<std::string, double> statByCategory(); // 查询每个类别别的总金额
+    std::vector<Record> list();                                     // 查询所有记录
+    std::vector<Record> listByMonth(const std::string &month_type); // 按月份查找
+    std::map<std::string, double> statByCategory();                 // 查询每个类别别的总金额
 
-    // 查找记录
-    std::vector<Record> search(const std::string &keyword);
+    // 模糊查询备注关键词
+    std::vector<Record> search(const std::string &keyword);                                // 搜索备注关键词,模糊查询
+    std::vector<Record> filter(const std::string &keyword, const std::string &month_type); // 月份筛选加模糊查询备注关键词
 
     // 更新
     bool update(int id, const Record &record);
