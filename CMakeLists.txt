@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(AccountingServer LANGUAGES CXX)
+project(AccountingServer LANGUAGES C CXX)
 
 # C++17
 set(CMAKE_CXX_STANDARD 17)
@@ -21,6 +21,9 @@ add_executable(AccountingServer
     src/RecordDao.cpp
     src/DBconnect.cpp
     src/handler.cpp
+    src/Config.cpp
+    third_party/inih/INIReader.cpp
+    third_party/inih/ini.c
 )
 
 # 头文件路径
@@ -38,5 +41,10 @@ target_link_libraries(AccountingServer PRIVATE libmysql)
 add_custom_command(TARGET AccountingServer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${MYSQL_LIB_DIR}/libmysql.dll"
+        $<TARGET_FILE_DIR:AccountingServer>
+)
+add_custom_command(TARGET AccountingServer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${PROJECT_SOURCE_DIR}/config.ini
         $<TARGET_FILE_DIR:AccountingServer>
 )

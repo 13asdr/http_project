@@ -2,13 +2,16 @@
 #include "nlohmann/json.hpp"
 #include "RecordDao.h"
 #include "handler.h"
+#include "Config.h"
 
 #include <iostream>
 
 int main()
 {
     httplib::Server server; // 创建HTTP服务器
-    DBconnect db;
+
+    Config config("config.ini"); // 解析配置文件
+    DBconnect db(config.db);
     RecordDao dao(db);
 
     // ==添加==

@@ -16,7 +16,7 @@ void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response
         if (dao.add(r))
         {
             result["status"] = "ok";
-            result["message"] = "添加成功";
+            result["message"] = "record added successfully";
         }
         else
         {
@@ -118,12 +118,12 @@ void Handler::Update(RecordDao &dao, const httplib::Request &req, httplib::Respo
     if (dao.update(id, r))
     {
         result["status"] = "ok";
-        result["message"] = "更新成功";
+        result["message"] = "record updated successfully";
     }
     else
     {
         result["status"] = "error";
-        result["message"] = "更新失败";
+        result["message"] = "update failed";
     }
     res.set_content(result.dump(), "application/json");
 }
@@ -136,12 +136,12 @@ void Handler::Remove(RecordDao &dao, const httplib::Request &req, httplib::Respo
     if (dao.remove(id))
     {
         result["status"] = "ok";
-        result["message"] = "删除成功";
+        result["message"] = "record deleted successfully";
     }
     else
     {
         result["status"] = "error";
-        result["message"] = "删除失败";
+        result["message"] = "delete failed";
     }
     res.set_content(result.dump(), "application/json");
 }
