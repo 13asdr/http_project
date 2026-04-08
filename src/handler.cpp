@@ -6,14 +6,14 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
     try
     {
         Logger::info("accept add request body: " + req.body);
-        auto j = nlohmann::json::parse(req.body);
+        auto j = Json::parse(req.body);
 
         // 解析JSON
         Record r;
         JsonToRecord(j, r);
 
         // std::cout << "category: " << r.category << std::endl;
-        nlohmann::json result;
+        Json result;
         if (dao.add(r))
         {
             result["status"] = "ok";
@@ -42,10 +42,10 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
         Logger::info("accept list request");
         auto records = dao.list_order_by_time();
 
-        nlohmann::json result = nlohmann::json::array();
+        Json result = Json::array();
         for (auto &r : records)
         {
-            nlohmann::json item;
+            Json item;
             RecordToJson(r, item);
             result.push_back(item);
         }
@@ -67,10 +67,10 @@ void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
         Logger::info("accept statByCategory request");
         auto records = dao.statByCategory();
 
-        nlohmann::json result = nlohmann::json::array(); // result 是一个数组
+        Json result = Json::array(); // result 是一个数组
         for (const auto &[key, value] : records)
         {
-            nlohmann::json item;
+            Json item;
             item["category"] = key;
             item["total"] = value;
             result.push_back(item);
@@ -93,10 +93,10 @@ void Handler::ListByMonth(RecordDao &dao, const Request &req, Response &res)
         Logger::info("accept listByMonth request");
         std::string month = req.get_param_value("month");
 
-        nlohmann::json result = nlohmann::json::array();
+        Json result = Json::array();
         for (auto &r : dao.listByMonth(month))
         {
-            nlohmann::json item;
+            Json item;
             RecordToJson(r, item);
             result.push_back(item);
         }
@@ -119,10 +119,10 @@ void Handler::Search(RecordDao &dao, const Request &req, Response &res)
         std::string keyword = req.get_param_value("keyword");
         // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
 
-        nlohmann::json result = nlohmann::json::array();
+        Json result = Json::array();
         for (auto &r : dao.search(keyword))
         {
-            nlohmann::json item;
+            Json item;
             RecordToJson(r, item);
             result.push_back(item);
         }
@@ -145,10 +145,10 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
         std::string keyword = req.get_param_value("keyword");
         std::string month = req.get_param_value("month");
 
-        nlohmann::json result = nlohmann::json::array();
+        Json result = Json::array();
         for (auto &r : dao.filter(keyword, month))
         {
-            nlohmann::json item;
+            Json item;
             RecordToJson(r, item);
             result.push_back(item);
         }
@@ -169,12 +169,12 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
     {
         Logger::info("accept update request body: " + req.body);
         int id = std::stoi(req.get_param_value("id"));
-        auto j = nlohmann::json::parse(req.body); // parse ,将字符串转换成对象
+        auto j = Json::parse(req.body); // parse ,将字符串转换成对象
 
         Record r;
         JsonToRecord(j, r);
 
-        nlohmann::json result; // 前后端都返回JSON对象
+        Json result; // 前后端都返回JSON对象
         if (dao.update(id, r))
         {
             result["status"] = "ok";
@@ -203,7 +203,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         Logger::info("accept remove request");
         int id = std::stoi(req.get_param_value("id"));
 
-        nlohmann::json result;
+        Json result;
         if (dao.remove(id))
         {
             result["status"] = "ok";
@@ -255,7 +255,7 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
     }
 }
 
-void Handler::JsonToRecord(nlohmann::json &j, Record &r)
+void Handler::JsonToRecord(Json &j, Record &r)
 {
     r.amount = j["amount"];
     r.note = j["note"];
@@ -264,7 +264,7 @@ void Handler::JsonToRecord(nlohmann::json &j, Record &r)
     r.category = j["category"];
 }
 
-void Handler::RecordToJson(const Record &r, nlohmann::json &j)
+void Handler::RecordToJson(const Record &r, Json &j)
 {
     j["amount"] = r.amount;
     j["note"] = r.note;

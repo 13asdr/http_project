@@ -6,12 +6,13 @@
 #include "RecordDao.h"
 #include <iostream>
 
-using Request = httplib::Request;
-using Response = httplib::Response;
-
 class Handler
 {
 public:
+    using Request = httplib::Request;
+    using Response = httplib::Response;
+    using Json = nlohmann::json;
+
     static void Add(RecordDao &dao, const Request &req, Response &res);
     static void List(RecordDao &dao, const Request &req, Response &res);
     static void StatByCategory(RecordDao &dao, const Request &req, Response &res);
@@ -23,8 +24,8 @@ public:
     static void Export(RecordDao &dao, const Request &req, Response &res);      // 导出记录
 
 private:
-    static void JsonToRecord(nlohmann::json &j, Record &r);
-    static void RecordToJson(const Record &r, nlohmann::json &j);
+    static void JsonToRecord(Json &j, Record &r);
+    static void RecordToJson(const Record &r, Json &j);
 };
 
 #endif
