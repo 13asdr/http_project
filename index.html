@@ -10,6 +10,23 @@
         padding: 0;
       }
 
+      .btn-export {
+        padding: 6px 14px;
+        background: #1f2e1f;
+        border: 0.5px solid #3a5a3a;
+        border-radius: 8px;
+        color: #4ade80;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn-export:hover {
+        background: #253525;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
       body {
         background: #1a1a1a;
         color: #e0e0e0;
@@ -345,8 +362,11 @@
   <body>
     <div class="app">
       <div class="header">
-        <h1>记账系统</h1>
-        <p>accounting server · localhost:8080</p>
+        <div>
+          <h1>记账系统</h1>
+          <p>accounting server · localhost:8080</p>
+        </div>
+        <button class="btn-export" onclick="exportRecords()">导出 CSV</button>
       </div>
 
       <div class="stats">
@@ -638,6 +658,14 @@
         ]);
 
         loadRecords();
+      }
+
+      //导出
+      function exportRecords() {
+        const a = document.createElement("a");
+        a.href = `${API}/record/export`;
+        a.download = "records.csv";
+        a.click();
       }
     </script>
   </body>

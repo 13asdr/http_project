@@ -6,17 +6,22 @@
 #include "RecordDao.h"
 #include <iostream>
 
+using Request = httplib::Request;
+using Response = httplib::Response;
+
 class Handler
 {
 public:
-    static void Add(RecordDao &dao, const httplib::Request &req, httplib::Response &res);
-    static void List(RecordDao &dao, const httplib::Request &req, httplib::Response &res);
-    static void StatByCategory(RecordDao &dao, const httplib::Request &req, httplib::Response &res);
-    static void ListByMonth(RecordDao &dao, const httplib::Request &req, httplib::Response &res); // 按月份查询
-    static void Search(RecordDao &dao, const httplib::Request &req, httplib::Response &res);      // 模糊查询备注关键词
-    static void Filter(RecordDao &dao, const httplib::Request &req, httplib::Response &res);      // 模糊查询备注关键词 AND 月份筛选
-    static void Update(RecordDao &dao, const httplib::Request &req, httplib::Response &res);      // 更新函数
-    static void Remove(RecordDao &dao, const httplib::Request &req, httplib::Response &res);      // 删除记录
+    static void Add(RecordDao &dao, const Request &req, Response &res);
+    static void List(RecordDao &dao, const Request &req, Response &res);
+    static void StatByCategory(RecordDao &dao, const Request &req, Response &res);
+    static void ListByMonth(RecordDao &dao, const Request &req, Response &res); // 按月份查询
+    static void Search(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词
+    static void Filter(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词 AND 月份筛选
+    static void Update(RecordDao &dao, const Request &req, Response &res);      // 更新函数
+    static void Remove(RecordDao &dao, const Request &req, Response &res);      // 删除记录
+    static void Export(RecordDao &dao, const Request &req, Response &res);      // 导出记录
+
 private:
     static void JsonToRecord(nlohmann::json &j, Record &r);
     static void RecordToJson(const Record &r, nlohmann::json &j);

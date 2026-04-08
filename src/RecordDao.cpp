@@ -19,7 +19,7 @@ bool RecordDao::add(const Record &record)
     return db.execute(sql.str());
 }
 
-std::vector<Record> RecordDao::list()
+std::vector<Record> RecordDao::list_order_by_time()
 {
     std::vector<Record> result;
     MYSQL_RES *res = db.query("SELECT id, amount, note, type, time, category FROM records ORDER BY time DESC");
@@ -33,12 +33,28 @@ std::vector<Record> RecordDao::list()
     while ((row = mysql_fetch_row(res)) != nullptr)
     {
         Record r;
-        r.id = std::stoi(row[0]);
-        r.amount = std::stod(row[1]);
-        r.note = row[2];
-        r.type = row[3];
-        r.time = row[4];
-        r.category = row[5];
+        RowTORecord(row, r);
+        result.push_back(r);
+    }
+    mysql_free_result(res);
+    return result;
+}
+
+std::vector<Record> RecordDao::list_order_by_id()
+{
+    std::vector<Record> result;
+    MYSQL_RES *res = db.query("SELECT id, amount, note, type, time, category FROM records ORDER BY id ASC");
+
+    if (!res)
+    {
+        return result;
+    }
+
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(res)) != nullptr)
+    {
+        Record r;
+        RowTORecord(row, r);
         result.push_back(r);
     }
     mysql_free_result(res);
@@ -62,12 +78,7 @@ std::vector<Record> RecordDao::listByMonth(const std::string &month_type)
     while ((row = mysql_fetch_row(res)) != nullptr)
     {
         Record r;
-        r.id = std::stoi(row[0]);
-        r.amount = std::stod(row[1]);
-        r.note = row[2];
-        r.type = row[3];
-        r.time = row[4];
-        r.category = row[5];
+        RowTORecord(row, r);
         result.push_back(r);
     }
     mysql_free_result(res);
@@ -105,12 +116,7 @@ std::vector<Record> RecordDao::search(const std::string &keyword)
     while ((row = mysql_fetch_row(res)) != nullptr)
     {
         Record r;
-        r.id = std::stoi(row[0]);
-        r.amount = std::stod(row[1]);
-        r.note = row[2];
-        r.type = row[3];
-        r.time = row[4];
-        r.category = row[5];
+        RowTORecord(row, r);
         result.push_back(r);
     }
     mysql_free_result(res);
@@ -133,7 +139,7 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
         sql << "AND DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' ";
     }
     sql << "ORDER BY time DESC ";
-    
+
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
         return result;
@@ -142,12 +148,7 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     while ((row = mysql_fetch_row(res)) != nullptr)
     {
         Record r;
-        r.id = std::stoi(row[0]);
-        r.amount = std::stod(row[1]);
-        r.note = row[2];
-        r.type = row[3];
-        r.time = row[4];
-        r.category = row[5];
+        RowTORecord(row, r);
         result.push_back(r);
     }
     mysql_free_result(res);
@@ -173,4 +174,14 @@ bool RecordDao::remove(int id)
     sql << "DELETE FROM records WHERE id = " << id;
 
     return db.execute(sql.str());
+}
+
+void RecordDao::RowTORecord(MYSQL_ROW &row, Record &record)
+{
+    record.id = std::stoi(row[0]);
+    record.amount = std::stod(row[1]);
+    record.note = row[2];
+    record.type = row[3];
+    record.time = row[4];
+    record.category = row[5];
 }

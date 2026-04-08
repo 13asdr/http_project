@@ -8,9 +8,12 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <windows.h>
 
 int main()
 {
+    SetConsoleOutputCP(65001); // 设置控制台输出为UTF-8编码
+
     std::filesystem::create_directory("logs");
 
     Logger::init();
@@ -51,6 +54,11 @@ int main()
     // 删除记录 DELETE /record/delete?id=1
     server.Delete("/record/delete", [&dao](const httplib::Request &req, httplib::Response &res)
                   { Handler::Remove(dao, req, res); });
+
+    // ==导出==
+    // 导出记录 GET /record/export
+    server.Get("/record/export", [&dao](const httplib::Request &req, httplib::Response &res)
+               { Handler::Export(dao, req, res); });
 
     // 允许所有跨域请求
     server.set_default_headers({{"Access-Control-Allow-Origin", "*"},

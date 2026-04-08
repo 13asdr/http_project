@@ -1,7 +1,7 @@
 #include "handler.h"
 #include "Logger.h"
 
-void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::Add(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -35,12 +35,12 @@ void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response
     }
 }
 
-void Handler::List(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::List(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
         Logger::info("accept list request");
-        auto records = dao.list();
+        auto records = dao.list_order_by_time();
 
         nlohmann::json result = nlohmann::json::array();
         for (auto &r : records)
@@ -60,7 +60,7 @@ void Handler::List(RecordDao &dao, const httplib::Request &req, httplib::Respons
     }
 };
 
-void Handler::StatByCategory(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -86,7 +86,7 @@ void Handler::StatByCategory(RecordDao &dao, const httplib::Request &req, httpli
     }
 }
 
-void Handler::ListByMonth(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::ListByMonth(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -111,7 +111,7 @@ void Handler::ListByMonth(RecordDao &dao, const httplib::Request &req, httplib::
     }
 }
 
-void Handler::Search(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::Search(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -137,7 +137,7 @@ void Handler::Search(RecordDao &dao, const httplib::Request &req, httplib::Respo
     }
 }
 
-void Handler::Filter(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -163,7 +163,7 @@ void Handler::Filter(RecordDao &dao, const httplib::Request &req, httplib::Respo
     }
 }
 
-void Handler::Update(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::Update(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -196,7 +196,7 @@ void Handler::Update(RecordDao &dao, const httplib::Request &req, httplib::Respo
     }
 }
 
-void Handler::Remove(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
+void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
@@ -220,6 +220,36 @@ void Handler::Remove(RecordDao &dao, const httplib::Request &req, httplib::Respo
     {
         std::string str_exception = e.what();
         Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/remove
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
+}
+
+void Handler::Export(RecordDao &dao, const Request &req, Response &res)
+{
+    try
+    {
+        Logger::info("accept export request");
+        auto records = dao.list_order_by_id();
+
+        std::ostringstream oss;
+        oss << "\xEF\xBB\xBF"; // UTF-8 BOM，加在第一行前面
+        oss << "id,金额,备注,类型,日期,分类\n";
+
+        for (const auto &r : records)
+        {
+            oss << r.id << "," << r.amount << "," << r.note << "," << r.type << "," << r.time << "," << r.category << "\n";
+        }
+
+        Logger::info("export records: " + oss.str());
+
+        res.set_content(oss.str(), "text/plain");
+        res.set_header("Content-Disposition", "attachment; filename=\"records.csv\"");
+    }
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/export
         res.status = 500;
         res.set_content("internal server error", "text/plain");
     }

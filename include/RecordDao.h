@@ -27,7 +27,8 @@ public:
     bool add(const Record &record);
 
     // 查询记录
-    std::vector<Record> list();                                     // 查询所有记录
+    std::vector<Record> list_order_by_time(); // 查询所有记录
+    std::vector<Record> list_order_by_id();
     std::vector<Record> listByMonth(const std::string &month_type); // 按月份查找
     std::map<std::string, double> statByCategory();                 // 查询每个类别别的总金额
 
@@ -42,4 +43,6 @@ public:
 
 private:
     DBconnect &db;
+
+    void RowTORecord(MYSQL_ROW& row, Record &record);
 };
