@@ -238,12 +238,12 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
 
         for (const auto &r : records)
         {
-            oss << r.id << "," << r.amount << "," << r.note << "," << r.type << "," << r.time << "," << r.category << "\n";
+            oss << r.id << "," << r.amount << ",\"" << r.note << "\"," << r.type << "," << r.time << "," << r.category << "\n";
         }
 
         Logger::info("export records: " + oss.str());
 
-        res.set_content(oss.str(), "text/plain");
+        res.set_content(oss.str(), "text/csv");
         res.set_header("Content-Disposition", "attachment; filename=\"records.csv\"");
     }
     catch (const std::exception &e)
