@@ -3,11 +3,18 @@
 #include "RecordDao.h"
 #include "handler.h"
 #include "Config.h"
+#include "Logger.h"
 
+#include <filesystem>
 #include <iostream>
+#include <sstream>
 
 int main()
 {
+    std::filesystem::create_directory("logs");
+
+    Logger::init();
+
     httplib::Server server; // 创建HTTP服务器
 
     Config config("config.ini"); // 解析配置文件
@@ -52,8 +59,12 @@ int main()
     // 处理 OPTIONS 预检请求
     server.Options(".*", [](const httplib::Request &, httplib::Response &res)
                    { res.status = 204; });
-    std::cout << "Accounting Server Started, Listening http://localhost:8080" << std::endl;
-    server.listen("0.0.0.0", 8080); // ctrl+c stop
+
+    std::ostringstream information;
+    information << "Accounting Server Started, Listening http://" << config.server.host << ":" << config.server.port;
+
+    Logger::info(information.str());
+    server.listen(config.server.host, config.server.port); // ctrl+c stop
 
     return 0;
 }

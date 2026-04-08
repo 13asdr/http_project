@@ -33,6 +33,10 @@ target_include_directories(AccountingServer PRIVATE
     ${MYSQL_INCLUDE_DIR}
 )
 
+#添加编译选项
+target_compile_options(AccountingServer PRIVATE /utf-8)
+
+
 # 链接 MySQL
 target_link_directories(AccountingServer PRIVATE ${MYSQL_LIB_DIR})
 target_link_libraries(AccountingServer PRIVATE libmysql)

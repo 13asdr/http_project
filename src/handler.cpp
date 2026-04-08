@@ -1,10 +1,11 @@
 #include "handler.h"
+#include "Logger.h"
 
 void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
     try
     {
-        std::cout << "accept add request body: " << req.body << std::endl;
+        Logger::info("accept add request body: " + req.body);
         auto j = nlohmann::json::parse(req.body);
 
         // 解析JSON
@@ -27,7 +28,8 @@ void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response
     }
     catch (const std::exception &e)
     {
-        std::cout << "exception: " << e.what() << std::endl;
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/add
         res.status = 500;
         res.set_content("internal server error", "text/plain");
     }
@@ -35,115 +37,192 @@ void Handler::Add(RecordDao &dao, const httplib::Request &req, httplib::Response
 
 void Handler::List(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    auto records = dao.list();
-
-    nlohmann::json result = nlohmann::json::array();
-    for (auto &r : records)
+    try
     {
-        nlohmann::json item;
-        RecordToJson(r, item);
-        result.push_back(item);
+        Logger::info("accept list request");
+        auto records = dao.list();
+
+        nlohmann::json result = nlohmann::json::array();
+        for (auto &r : records)
+        {
+            nlohmann::json item;
+            RecordToJson(r, item);
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    res.set_content(result.dump(), "application/json");
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/list
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
 };
 
 void Handler::StatByCategory(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    auto records = dao.statByCategory();
-
-    nlohmann::json result = nlohmann::json::array(); // result 是一个数组
-    for (const auto &[key, value] : records)
+    try
     {
-        nlohmann::json item;
-        item["category"] = key;
-        item["total"] = value;
-        result.push_back(item);
+        Logger::info("accept statByCategory request");
+        auto records = dao.statByCategory();
+
+        nlohmann::json result = nlohmann::json::array(); // result 是一个数组
+        for (const auto &[key, value] : records)
+        {
+            nlohmann::json item;
+            item["category"] = key;
+            item["total"] = value;
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    res.set_content(result.dump(), "application/json");
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/statByCategory
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
 }
 
 void Handler::ListByMonth(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    std::string month = req.get_param_value("month");
-
-    nlohmann::json result = nlohmann::json::array();
-    for (auto &r : dao.listByMonth(month))
+    try
     {
-        nlohmann::json item;
-        RecordToJson(r, item);
-        result.push_back(item);
+        Logger::info("accept listByMonth request");
+        std::string month = req.get_param_value("month");
+
+        nlohmann::json result = nlohmann::json::array();
+        for (auto &r : dao.listByMonth(month))
+        {
+            nlohmann::json item;
+            RecordToJson(r, item);
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    res.set_content(result.dump(), "application/json");
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/listByMonth
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
 }
 
 void Handler::Search(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    std::string keyword = req.get_param_value("keyword");
-    // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
-
-    nlohmann::json result = nlohmann::json::array();
-    for (auto &r : dao.search(keyword))
+    try
     {
-        nlohmann::json item;
-        RecordToJson(r, item);
-        result.push_back(item);
+        Logger::info("accept search request");
+        std::string keyword = req.get_param_value("keyword");
+        // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
+
+        nlohmann::json result = nlohmann::json::array();
+        for (auto &r : dao.search(keyword))
+        {
+            nlohmann::json item;
+            RecordToJson(r, item);
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    res.set_content(result.dump(), "application/json");
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/search
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
 }
 
 void Handler::Filter(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    std::string keyword = req.get_param_value("keyword");
-    std::string month = req.get_param_value("month");
-
-    nlohmann::json result = nlohmann::json::array();
-    for (auto &r : dao.filter(keyword, month))
+    try
     {
-        nlohmann::json item;
-        RecordToJson(r, item);
-        result.push_back(item);
+        Logger::info("accept filter request");
+        std::string keyword = req.get_param_value("keyword");
+        std::string month = req.get_param_value("month");
+
+        nlohmann::json result = nlohmann::json::array();
+        for (auto &r : dao.filter(keyword, month))
+        {
+            nlohmann::json item;
+            RecordToJson(r, item);
+            result.push_back(item);
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    res.set_content(result.dump(), "application/json");
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/filter
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
+    }
 }
 
 void Handler::Update(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    int id = std::stoi(req.get_param_value("id"));
-    auto j = nlohmann::json::parse(req.body); // parse ,将字符串转换成对象
-
-    Record r;
-    JsonToRecord(j, r);
-
-    nlohmann::json result; // 前后端都返回JSON对象
-    if (dao.update(id, r))
+    try
     {
-        result["status"] = "ok";
-        result["message"] = "record updated successfully";
+        Logger::info("accept update request body: " + req.body);
+        int id = std::stoi(req.get_param_value("id"));
+        auto j = nlohmann::json::parse(req.body); // parse ,将字符串转换成对象
+
+        Record r;
+        JsonToRecord(j, r);
+
+        nlohmann::json result; // 前后端都返回JSON对象
+        if (dao.update(id, r))
+        {
+            result["status"] = "ok";
+            result["message"] = "record updated successfully";
+        }
+        else
+        {
+            result["status"] = "error";
+            result["message"] = "update failed";
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    else
+    catch (const std::exception &e)
     {
-        result["status"] = "error";
-        result["message"] = "update failed";
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/update
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
     }
-    res.set_content(result.dump(), "application/json");
 }
 
 void Handler::Remove(RecordDao &dao, const httplib::Request &req, httplib::Response &res)
 {
-    int id = std::stoi(req.get_param_value("id"));
+    try
+    {
+        Logger::info("accept remove request");
+        int id = std::stoi(req.get_param_value("id"));
 
-    nlohmann::json result;
-    if (dao.remove(id))
-    {
-        result["status"] = "ok";
-        result["message"] = "record deleted successfully";
+        nlohmann::json result;
+        if (dao.remove(id))
+        {
+            result["status"] = "ok";
+            result["message"] = "record deleted successfully";
+        }
+        else
+        {
+            result["status"] = "error";
+            result["message"] = "delete failed";
+        }
+        res.set_content(result.dump(), "application/json");
     }
-    else
+    catch (const std::exception &e)
     {
-        result["status"] = "error";
-        result["message"] = "delete failed";
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/remove
+        res.status = 500;
+        res.set_content("internal server error", "text/plain");
     }
-    res.set_content(result.dump(), "application/json");
 }
 
 void Handler::JsonToRecord(nlohmann::json &j, Record &r)
