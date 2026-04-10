@@ -22,6 +22,7 @@ add_executable(AccountingServer
     src/DBconnect.cpp
     src/handler.cpp
     src/Config.cpp
+    src/UserDao.cpp
     third_party/inih/INIReader.cpp
     third_party/inih/ini.c
 )

@@ -5,7 +5,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept add request body: " + req.body);
+        Logger::info("accept RecordAdd request body: " + req.body);
         auto j = Json::parse(req.body);
 
         // 解析JSON
@@ -31,7 +31,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         std::string str_exception = e.what();
         Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是record/add
         res.status = 500;
-        res.set_content("internal server error", "text/plain");
+        res.set_content("internal server Record error", "text/plain");
     }
 }
 
@@ -39,7 +39,7 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept list request");
+        Logger::info("accept Record list request");
         auto records = dao.list_order_by_time();
 
         Json result = Json::array();
@@ -64,7 +64,7 @@ void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept statByCategory request");
+        Logger::info("accept Record statByCategory request");
         auto records = dao.statByCategory();
 
         Json result = Json::array(); // result 是一个数组
@@ -90,7 +90,7 @@ void Handler::ListByMonth(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept listByMonth request");
+        Logger::info("accept Record listByMonth request");
         std::string month = req.get_param_value("month");
 
         Json result = Json::array();
@@ -115,7 +115,7 @@ void Handler::Search(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept search request");
+        Logger::info("accept Record search request");
         std::string keyword = req.get_param_value("keyword");
         // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
 
@@ -141,7 +141,7 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept filter request");
+        Logger::info("accept Record filter request");
         std::string keyword = req.get_param_value("keyword");
         std::string month = req.get_param_value("month");
 
@@ -167,7 +167,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept update request body: " + req.body);
+        Logger::info("accept Record update request body: " + req.body);
         int id = std::stoi(req.get_param_value("id"));
         auto j = Json::parse(req.body); // parse ,将字符串转换成对象
 
@@ -200,7 +200,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept remove request");
+        Logger::info("accept Record remove request");
         int id = std::stoi(req.get_param_value("id"));
 
         Json result;
@@ -229,7 +229,7 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept export request");
+        Logger::info("accept Record export request");
         auto records = dao.list_order_by_id();
 
         std::ostringstream oss;
@@ -255,6 +255,97 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
     }
 }
 
+// 用户接口:
+void Handler::Add(UserDao &dao, const Request &req, Response &res)
+{
+    try
+    {
+        Logger::info("accept User Add request body: " + req.body);
+        auto j = Json::parse(req.body);
+        User user;
+        JsonToUser(j, user);
+
+        Json result;
+        if (dao.add(user))
+        {
+            result["status"] = "ok";
+            result["message"] = "user added successfully";
+        }
+        else
+        {
+            result["status"] = "error";
+            result["message"] = "user add failed";
+        }
+        res.set_content(result.dump(), "application/json");
+    }
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是user/add
+        res.status = 500;
+        res.set_content("internal server User error", "text/plain");
+    }
+}
+void Handler::Update(UserDao &dao, const Request &req, Response &res)
+{
+    try
+    {
+        Logger::info("accept User Add request body: " + req.body);
+        auto j = Json::parse(req.body);
+        User user;
+        JsonToUser(j, user);
+
+        Json result;
+        if (dao.update(user))
+        {
+            result["status"] = "ok";
+            result["message"] = "user updated successfully";
+        }
+        else
+        {
+            result["status"] = "error";
+            result["message"] = "user update failed";
+        }
+        res.set_content(result.dump(), "application/json");
+    }
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是user/update
+        res.status = 500;
+        res.set_content("internal server User error", "text/plain");
+    }
+}
+
+void Handler::Remove(UserDao &dao, const Request &req, Response &res)
+{
+    try
+    {
+        Logger::info("accept User Remove request");
+        std::string username = req.get_param_value("username");
+
+        Json result;
+        if (dao.remove(username))
+        {
+            result["status"] = "ok";
+            result["message"] = "user deleted successfully";
+        }
+        else
+        {
+            result["status"] = "error";
+            result["message"] = "delete failed";
+        }
+        res.set_content(result.dump(), "application/json");
+    }
+    catch (const std::exception &e)
+    {
+        std::string str_exception = e.what();
+        Logger::error("Location : " + req.path + " , Exception: " + str_exception); // path是user/remove
+        res.status = 500;
+        res.set_content("internal server User error", "text/plain");
+    }
+}
+
 void Handler::JsonToRecord(Json &j, Record &r)
 {
     r.amount = j["amount"];
@@ -272,3 +363,15 @@ void Handler::RecordToJson(const Record &r, Json &j)
     j["time"] = r.time;
     j["category"] = r.category;
 }
+
+void Handler::JsonToUser(Json &j, User &u)
+{
+    u.name = j["name"];
+    u.password = j["password"];
+}
+
+// void Handler::UserToJson(const User &u, Json &j)
+// {
+//     j["name"] = u.name;
+//     j["password"] = u.password;
+// }

@@ -4,6 +4,7 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 #include "RecordDao.h"
+#include "UserDao.h"
 #include <iostream>
 
 class Handler
@@ -13,6 +14,7 @@ public:
     using Response = httplib::Response;
     using Json = nlohmann::json;
 
+    // record 相关接口
     static void Add(RecordDao &dao, const Request &req, Response &res);
     static void List(RecordDao &dao, const Request &req, Response &res);
     static void StatByCategory(RecordDao &dao, const Request &req, Response &res);
@@ -23,9 +25,16 @@ public:
     static void Remove(RecordDao &dao, const Request &req, Response &res);      // 删除记录
     static void Export(RecordDao &dao, const Request &req, Response &res);      // 导出记录
 
+    // user 相关接口
+    static void Add(UserDao &dao, const Request &req, Response &res);
+    static void Update(UserDao &dao, const Request &req, Response &res);
+    static void Remove(UserDao &dao, const Request &req, Response &res);
+
 private:
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
+    static void JsonToUser(Json &j, User &u);
+    // static void UserToJson(const User &u, Json &j);
 };
 
 #endif

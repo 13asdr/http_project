@@ -4,6 +4,7 @@
 #include "handler.h"
 #include "Config.h"
 #include "Logger.h"
+#include "UserDao.h"
 
 #include <filesystem>
 #include <iostream>
@@ -23,11 +24,15 @@ int main()
     Config config("config.ini"); // 解析配置文件
     DBconnect db(config.db);
     RecordDao dao(db);
+    UserDao userDao(db);
 
     // ==添加==
     // 添加记录 POST /record/add
     server.Post("/record/add", [&dao](const httplib::Request &req, httplib::Response &res)
                 { Handler::Add(dao, req, res); }); // 查询类别的总金额
+
+    server.Post("/user/add", [&dao](const httplib::Request &req, httplib::Response &res)
+                { Handler::Add(dao, req, res); }); // 添加用户
 
     // ==查询==
     server.Get("/record/statByCategory", [&dao](const httplib::Request &req, httplib::Response &res)
