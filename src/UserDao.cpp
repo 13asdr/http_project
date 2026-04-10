@@ -7,13 +7,13 @@ UserDao::~UserDao() {}
 bool UserDao::add(const User &user)
 {
     std::ostringstream sql;
-    sql << "INSERT INTO users (name, password) VALUES ('" << user.name << "', '" << user.password << "')";
+    sql << "INSERT INTO users (username, password) VALUES ('" << user.username << "', '" << user.password << "')";
     return db.execute(sql.str());
 }
 
 bool UserDao::query(const std::string &username)
 {
-    MYSQL_RES *res = db.query("SELECT id FROM users WHERE name = '" + username + "'");
+    MYSQL_RES *res = db.query("SELECT id FROM users WHERE username = '" + username + "'");
     if (!res)
     {
         return false;
@@ -27,13 +27,13 @@ bool UserDao::query(const std::string &username)
 bool UserDao::update(const User &user)
 {
     std::ostringstream sql;
-    sql << "UPDATE users SET name = '" << user.name << "', password = '" << user.password << "' WHERE name = '" << user.name << "'";
+    sql << "UPDATE users SET username = '" << user.username << "', password = '" << user.password << "' WHERE username = '" << user.username << "'";
     return db.execute(sql.str());
 }
 // 删除
 bool UserDao::remove(const std::string &username)
 {
     std::ostringstream sql;
-    sql << "DELETE FROM users WHERE name = '" << username << "'";
+    sql << "DELETE FROM users WHERE username = '" << username << "'";
     return db.execute(sql.str());
 }

@@ -366,12 +366,12 @@ void Handler::RecordToJson(const Record &r, Json &j)
 
 void Handler::JsonToUser(Json &j, User &u)
 {
-    u.name = j["name"];
+    u.username = j["username"];
     u.password = j["password"];
 }
 
 // void Handler::UserToJson(const User &u, Json &j)
 // {
-//     j["name"] = u.name;
+//     j["username"] = u.username;
 //     j["password"] = u.password;
 // }
