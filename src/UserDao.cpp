@@ -11,16 +11,24 @@ bool UserDao::add(const User &user)
     return db.execute(sql.str());
 }
 
-bool UserDao::query(const std::string &username)
+std::optional<User> UserDao::query(const std::string &username)
 {
-    MYSQL_RES *res = db.query("SELECT id FROM users WHERE username = '" + username + "'");
+    User user;
+    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + username + "'");
     if (!res)
     {
-        return false;
+        return std::nullopt; // 查询失败
     }
     MYSQL_ROW row = mysql_fetch_row(res);
+    if (row == nullptr)
+    {
+        return std::nullopt; // 查询失败
+    }
     mysql_free_result(res);
-    return row != nullptr;
+    user.id = std::stoi(row[0]);
+    user.username = row[1];
+    user.password = row[2];
+    return user;
 }
 
 // 更新

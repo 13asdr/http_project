@@ -13,7 +13,7 @@
 
 int main()
 {
-    SetConsoleOutputCP(65001); // 设置控制台输出为UTF-8编码
+    SetConsoleOutputCP(65001); // 设置控制台输出为UTF-8编码,头文件<windows.h>
 
     std::filesystem::create_directory("logs");
 
@@ -33,6 +33,14 @@ int main()
 
     server.Post("/user/add", [&dao](const httplib::Request &req, httplib::Response &res)
                 { Handler::Add(dao, req, res); }); // 添加用户
+
+    //==用户POST==
+    server.Post("/user/login", [&userDao](const httplib::Request &req, httplib::Response &res)
+                { Handler::Login(userDao, req, res); }); // 登录
+    server.Post("/user/register", [&userDao](const httplib::Request &req, httplib::Response &res)
+                { Handler::Register(userDao, req, res); }); // 注册
+    server.Post("/user/logout", [&userDao](const httplib::Request &req, httplib::Response &res)
+                { Handler::Logout(req, res); }); // 退出登录
 
     // ==查询==
     server.Get("/record/statByCategory", [&dao](const httplib::Request &req, httplib::Response &res)
@@ -77,7 +85,8 @@ int main()
     information << "Accounting Server Started, Listening http://" << config.server.host << ":" << config.server.port;
 
     Logger::info(information.str());
-    server.listen(config.server.host, config.server.port); // ctrl+c stop
+    bool ok = server.listen(config.server.host.c_str(), config.server.port); // ctrl+c stop
+    Logger::info("listen return: " + std::to_string(ok));
 
     return 0;
 }

@@ -6,6 +6,7 @@
 #include <mysql.h>
 #include <sstream>
 #include <map>
+#include <optional>
 
 #include "DBconnect.h"
 
@@ -26,7 +27,7 @@ public:
     bool add(const User &user);
 
     // 查询
-    bool query(const std::string &username);
+    std::optional<User> query(const std::string &username); // 返回用户ID，-1表示查询失败
 
     // 更新
     bool update(const User &user);

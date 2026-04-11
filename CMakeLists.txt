@@ -23,6 +23,7 @@ add_executable(AccountingServer
     src/handler.cpp
     src/Config.cpp
     src/UserDao.cpp
+    src/TokenManager.cpp
     third_party/inih/INIReader.cpp
     third_party/inih/ini.c
 )

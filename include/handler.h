@@ -5,6 +5,8 @@
 #include "nlohmann/json.hpp"
 #include "RecordDao.h"
 #include "UserDao.h"
+#include "TokenManager.h"
+
 #include <iostream>
 
 class Handler
@@ -30,7 +32,13 @@ public:
     static void Update(UserDao &dao, const Request &req, Response &res);
     static void Remove(UserDao &dao, const Request &req, Response &res);
 
+    // token 相关接口
+    static void Login(UserDao &dao, const Request &req, Response &res);
+    static void Register(UserDao &dao, const Request &req, Response &res);
+    static void Logout(const Request &req, Response &res);
+
 private:
+    static int authCheck(const Request &req, Response &res);    // 认证检查
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
     static void JsonToUser(Json &j, User &u);
