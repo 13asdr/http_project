@@ -13,7 +13,7 @@
 
 int main()
 {
-    SetConsoleOutputCP(65001); // 设置控制台输出为UTF-8编码
+    SetConsoleOutputCP(65001); // 设置控制台输出为UTF-8编码,头文件<windows.h>
 
     std::filesystem::create_directory("logs");
 
