@@ -1,374 +1,505 @@
 <!doctype html>
 <html lang="zh">
-  <head>
-    <meta charset="UTF-8" />
-    <title>记账系统</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
 
-      .btn-export {
-        padding: 6px 14px;
-        background: #1f2e1f;
-        border: 0.5px solid #3a5a3a;
-        border-radius: 8px;
-        color: #4ade80;
-        font-size: 13px;
-        cursor: pointer;
-      }
-      .btn-export:hover {
-        background: #253525;
-      }
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      body {
-        background: #1a1a1a;
-        color: #e0e0e0;
-        font-family: sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>记账系统</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-      .search-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1rem;
-      }
-      .search-bar input {
-        flex: 1;
-        background: #1a1a1a;
-        border: 0.5px solid #3a3a3a;
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 13px;
-        color: #e0e0e0;
-        outline: none;
-      }
-      .btn-search {
-        padding: 6px 14px;
-        background: #2a2a3a;
-        border: 0.5px solid #444;
-        border-radius: 8px;
-        color: #a0a0f0;
-        font-size: 13px;
-        cursor: pointer;
-      }
-      .category-card {
-        background: #242424;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-      }
-      .category-card h2 {
-        font-size: 14px;
-        font-weight: 500;
-        color: #ccc;
-        margin-bottom: 1rem;
-      }
-      .category-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
-      }
-      .category-item {
-        background: #1a1a1a;
-        border-radius: 8px;
-        padding: 10px 14px;
-      }
-      .category-item .cat-name {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 4px;
-      }
-      .category-item .cat-amount {
-        font-size: 16px;
-        font-weight: 500;
-        color: #f87171;
-      }
-      .app {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 1.5rem 1rem;
-      }
+    .login-page {
+      max-width: 360px;
+      margin: 80px auto;
+      padding: 2rem;
+      background: #242424;
+      border-radius: 12px;
+    }
 
-      .header {
-        margin-bottom: 1.5rem;
-      }
+    .login-page h2 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #f0f0f0;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
 
-      .header h1 {
-        font-size: 20px;
-        font-weight: 500;
-        color: #f0f0f0;
-      }
+    .login-page .form-group {
+      margin-bottom: 12px;
+    }
 
-      .header p {
-        font-size: 13px;
-        color: #888;
-        margin-top: 4px;
-      }
+    .login-page .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 5px;
+    }
 
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 1.5rem;
-      }
+    .login-page .form-group input {
+      width: 100%;
+      background: #1a1a1a;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #e0e0e0;
+      outline: none;
+    }
 
-      .stat-card {
-        background: #242424;
-        border-radius: 10px;
-        padding: 14px 16px;
-      }
+    .login-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
 
-      .stat-card .label {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 6px;
-      }
+    .login-tab {
+      flex: 1;
+      padding: 6px;
+      background: none;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      color: #888;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-      .stat-card .value {
-        font-size: 22px;
-        font-weight: 500;
-      }
+    .login-tab.active {
+      background: #2a2a3a;
+      border-color: #444;
+      color: #a0a0f0;
+    }
 
-      .value.income {
-        color: #4ade80;
-      }
+    .btn-login {
+      width: 100%;
+      margin-top: 16px;
+      padding: 9px;
+      background: #2a2a3a;
+      border: 0.5px solid #444;
+      border-radius: 8px;
+      color: #a0a0f0;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-      .value.expense {
-        color: #f87171;
-      }
+    .btn-logout {
+      padding: 6px 14px;
+      background: none;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-      .value.balance {
-        color: #60a5fa;
-      }
+    .btn-export {
+      padding: 6px 14px;
+      background: #1f2e1f;
+      border: 0.5px solid #3a5a3a;
+      border-radius: 8px;
+      color: #4ade80;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-      .form-card,
-      .list-card {
-        background: #242424;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-      }
+    .btn-export:hover {
+      background: #253525;
+    }
 
-      .form-card h2,
-      .list-card h2 {
-        font-size: 14px;
-        font-weight: 500;
-        color: #ccc;
-        margin-bottom: 1rem;
-      }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: sans-serif;
+    }
 
-      .form-group label {
-        display: block;
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 5px;
-      }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
 
-      .form-group input,
-      .form-group select {
-        width: 100%;
-        background: #1a1a1a;
-        border: 0.5px solid #3a3a3a;
-        border-radius: 8px;
-        padding: 8px 10px;
-        font-size: 13px;
-        color: #e0e0e0;
-        outline: none;
-      }
+    .search-bar input {
+      flex: 1;
+      background: #1a1a1a;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #e0e0e0;
+      outline: none;
+    }
 
-      .form-group select option {
-        background: #1a1a1a;
-      }
+    .btn-search {
+      padding: 6px 14px;
+      background: #2a2a3a;
+      border: 0.5px solid #444;
+      border-radius: 8px;
+      color: #a0a0f0;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-      .btn-submit {
-        width: 100%;
-        margin-top: 12px;
-        padding: 9px;
-        background: #2a2a3a;
-        border: 0.5px solid #444;
-        border-radius: 8px;
-        color: #a0a0f0;
-        font-size: 13px;
-        cursor: pointer;
-      }
+    .category-card {
+      background: #242424;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
 
-      .btn-submit:hover {
-        background: #32324a;
-      }
+    .category-card h2 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
 
-      .record-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 0.5px solid #2e2e2e;
-      }
+    .category-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
 
-      .record-item:last-child {
-        border-bottom: none;
-      }
+    .category-item {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
 
-      .record-left {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-      }
+    .category-item .cat-name {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
 
-      .record-note {
-        font-size: 14px;
-        color: #e0e0e0;
-      }
+    .category-item .cat-amount {
+      font-size: 16px;
+      font-weight: 500;
+      color: #f87171;
+    }
 
-      .record-meta {
-        font-size: 12px;
-        color: #666;
-      }
+    .app {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+    }
 
-      .record-right {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
+    .header {
+      margin-bottom: 1.5rem;
+    }
 
-      .record-amount {
-        font-size: 15px;
-        font-weight: 500;
-      }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: #f0f0f0;
+    }
 
-      .amount-expense {
-        color: #f87171;
-      }
+    .header p {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
 
-      .amount-income {
-        color: #4ade80;
-      }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
 
-      .badge {
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 20px;
-      }
+    .stat-card {
+      background: #242424;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
 
-      .badge-expense {
-        background: #2e1f1f;
-        color: #f87171;
-      }
+    .stat-card .label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+    }
 
-      .badge-income {
-        background: #1f2e1f;
-        color: #4ade80;
-      }
+    .stat-card .value {
+      font-size: 22px;
+      font-weight: 500;
+    }
 
-      .btn-del {
-        background: none;
-        border: none;
-        color: #555;
-        font-size: 16px;
-        cursor: pointer;
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
+    .value.income {
+      color: #4ade80;
+    }
 
-      .btn-del:hover {
-        color: #f87171;
-        background: #2e2020;
-      }
+    .value.expense {
+      color: #f87171;
+    }
 
-      .empty {
-        font-size: 13px;
-        color: #555;
-        text-align: center;
-        padding: 1rem 0;
-      }
+    .value.balance {
+      color: #60a5fa;
+    }
 
-      .filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1rem;
-      }
+    .form-card,
+    .list-card {
+      background: #242424;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
 
-      .filter-bar label {
-        font-size: 12px;
-        color: #888;
-      }
+    .form-card h2,
+    .list-card h2 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
 
-      .filter-bar input {
-        background: #1a1a1a;
-        border: 0.5px solid #3a3a3a;
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 13px;
-        color: #e0e0e0;
-        outline: none;
-      }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
 
-      .btn-filter {
-        padding: 6px 14px;
-        background: #2a2a3a;
-        border: 0.5px solid #444;
-        border-radius: 8px;
-        color: #a0a0f0;
-        font-size: 13px;
-        cursor: pointer;
-      }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 5px;
+    }
 
-      .btn-reset {
-        padding: 6px 14px;
-        background: none;
-        border: 0.5px solid #3a3a3a;
-        border-radius: 8px;
-        color: #666;
-        font-size: 13px;
-        cursor: pointer;
-      }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      background: #1a1a1a;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #e0e0e0;
+      outline: none;
+    }
 
-      .btn-edit {
-        background: none;
-        border: none;
-        color: #555;
-        font-size: 14px;
-        cursor: pointer;
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
-      .btn-edit:hover {
-        color: #a0a0f0;
-        background: #202030;
-      }
-      .form-card h2 span {
-        font-size: 12px;
-        color: #666;
-        margin-left: 8px;
-        font-weight: 400;
-      }
-    </style>
-  </head>
+    .form-group select option {
+      background: #1a1a1a;
+    }
 
-  <body>
+    .btn-submit {
+      width: 100%;
+      margin-top: 12px;
+      padding: 9px;
+      background: #2a2a3a;
+      border: 0.5px solid #444;
+      border-radius: 8px;
+      color: #a0a0f0;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background: #32324a;
+    }
+
+    .record-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 0.5px solid #2e2e2e;
+    }
+
+    .record-item:last-child {
+      border-bottom: none;
+    }
+
+    .record-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .record-note {
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+
+    .record-meta {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .record-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .record-amount {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .amount-expense {
+      color: #f87171;
+    }
+
+    .amount-income {
+      color: #4ade80;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .badge-expense {
+      background: #2e1f1f;
+      color: #f87171;
+    }
+
+    .badge-income {
+      background: #1f2e1f;
+      color: #4ade80;
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-del:hover {
+      color: #f87171;
+      background: #2e2020;
+    }
+
+    .empty {
+      font-size: 13px;
+      color: #555;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .filter-bar label {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .filter-bar input {
+      background: #1a1a1a;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #e0e0e0;
+      outline: none;
+    }
+
+    .btn-filter {
+      padding: 6px 14px;
+      background: #2a2a3a;
+      border: 0.5px solid #444;
+      border-radius: 8px;
+      color: #a0a0f0;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-reset {
+      padding: 6px 14px;
+      background: none;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-edit {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-edit:hover {
+      color: #a0a0f0;
+      background: #202030;
+    }
+
+    .form-card h2 span {
+      font-size: 12px;
+      color: #666;
+      margin-left: 8px;
+      font-weight: 400;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 登录页面 -->
+  <div id="login-page" style="display: none">
+    <div class="login-page">
+      <h2>记账系统</h2>
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('login')">
+          登录
+        </button>
+        <button class="login-tab" onclick="switchTab('register')">
+          注册
+        </button>
+      </div>
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="login-username" placeholder="请输入用户名" />
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="login-password" placeholder="请输入密码" />
+      </div>
+      <button class="btn-login" id="login-btn" onclick="handleAuth()">
+        登录
+      </button>
+    </div>
+  </div>
+
+  <!-- 主页面 -->
+  <div id="main-page" style="display: none">
     <div class="app">
       <div class="header">
         <div>
           <h1>记账系统</h1>
           <p>accounting server · localhost:8080</p>
         </div>
-        <button class="btn-export" onclick="exportRecords()">导出 CSV</button>
+        <div style="display: flex; gap: 10px">
+          <button class="btn-export" onclick="exportRecords()">
+            导出 CSV
+          </button>
+          <button class="btn-logout" onclick="logout()">退出登录</button>
+        </div>
       </div>
-
+      <!-- 原来的内容全部放这里，stats、form-card、list-card 都不变 -->
       <div class="stats">
         <div class="stat-card">
           <div class="label">收入</div>
@@ -382,10 +513,10 @@
           <div class="label">结余</div>
           <div class="value balance" id="total-balance">¥0</div>
         </div>
-        <div class="category-card">
-          <h2>支出分类</h2>
-          <div class="category-list" id="category-list"></div>
-        </div>
+      </div>
+      <div class="category-card">
+        <h2>支出分类</h2>
+        <div class="category-list" id="category-list"></div>
       </div>
 
       <div class="form-card">
@@ -437,10 +568,7 @@
           <p class="empty">暂无记录</p>
         </div>
         <div class="search-bar">
-          <input
-            type="text"
-            id="search-keyword"
-            placeholder="搜索备注关键词..." />
+          <input type="text" id="search-keyword" placeholder="搜索备注关键词..." />
           <button class="btn-search" onclick="searchRecords()">搜索</button>
           <button class="btn-reset" onclick="resetFilter()">重置</button>
         </div>
@@ -451,136 +579,223 @@
           <button class="btn-reset" onclick="resetFilter()">重置</button>
         </div>
       </div>
-    </div>
+</body>
 
-    <script>
-      const API = "http://localhost:8080";
+<script>
+  const API = "http://localhost:8080";
+  let currentTab = 'login';
 
-      let editingId = null;
+  // 页面加载时检查 token
+  window.onload = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      showMainPage();
+    } else {
+      showLoginPage();  // 没有 token 直接显示登录页
+    }
+  };
 
-      async function loadCategoryStats() {
-        const res = await fetch(`${API}/record/statByCategory`);
-        const data = await res.json();
+  function showLoginPage() {
+    document.getElementById('login-page').style.display = 'block';
+    document.getElementById('main-page').style.display = 'none';
+  }
 
-        const container = document.getElementById("category-list");
-        if (data.length === 0) {
-          container.innerHTML = '<p class="empty">暂无数据</p>';
-          return;
-        }
-        container.innerHTML = data
-          .map(
-            (item) => `
+  function showMainPage() {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('main-page').style.display = 'block';
+    document.getElementById('time').valueAsDate = new Date();
+    loadRecords();
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.login-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.getElementById('login-btn').textContent = tab === 'login' ? '登录' : '注册';
+  }
+
+  async function handleAuth() {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+
+    if (!username || !password) {
+      alert('请填写用户名和密码');
+      return;
+    }
+
+    const url = currentTab === 'login' ? `${API}/user/login` : `${API}/user/register`;
+    const res = await authFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      if (currentTab === 'login') {
+        localStorage.setItem('token', data.token);
+        showMainPage();
+      } else {
+        alert('注册成功，请登录');
+        switchTab('login');
+      }
+    } else {
+      alert(data.message);
+    }
+  }
+
+  async function logout() {
+    const token = localStorage.getItem('token');
+    await authFetch(`${API}/user/logout`, {
+      method: 'POST',
+      headers: { 'token': token }
+    });
+    localStorage.removeItem('token');
+    showLoginPage();
+  }
+
+  let editingId = null;
+
+  async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    options.headers = options.headers || {};
+    options.headers['token'] = token;
+
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+      // token 过期或无效，跳回登录页
+      localStorage.removeItem('token');
+      showLoginPage();
+      throw new Error('unauthorized');
+    }
+    return res;
+  }
+
+
+  async function loadCategoryStats() {
+    const res = await authFetch(`${API}/record/statByCategory`);
+    const data = await res.json();
+
+    const container = document.getElementById("category-list");
+    if (data.length === 0) {
+      container.innerHTML = '<p class="empty">暂无数据</p>';
+      return;
+    }
+    container.innerHTML = data
+      .map(
+        (item) => `
           <div class="category-item">
             <div class="cat-name">${item.category}</div>
             <div class="cat-amount">-¥${item.total.toFixed(2)}</div>
           </div>
         `,
-          )
-          .join("");
-      }
-      function startEdit(id, amount, type, note, time, category) {
-        editingId = id;
-        document.getElementById("amount").value = amount;
-        document.getElementById("type").value = type;
-        document.getElementById("note").value = note;
-        document.getElementById("time").value = time;
-        document.getElementById("category").value = category;
+      )
+      .join("");
+  }
+  function startEdit(id, amount, type, note, time, category) {
+    editingId = id;
+    document.getElementById("amount").value = amount;
+    document.getElementById("type").value = type;
+    document.getElementById("note").value = note;
+    document.getElementById("time").value = time;
+    document.getElementById("category").value = category;
 
-        const btn = document.getElementById("submit-btn");
-        btn.textContent = "保存修改";
+    const btn = document.getElementById("submit-btn");
+    btn.textContent = "保存修改";
 
-        // 滚动到表单
-        document
-          .querySelector(".form-card")
-          .scrollIntoView({ behavior: "smooth" });
-      }
+    // 滚动到表单
+    document
+      .querySelector(".form-card")
+      .scrollIntoView({ behavior: "smooth" });
+  }
 
-      function submitRecord() {
-        if (editingId !== null) {
-          updateRecord();
-        } else {
-          addRecord();
-        }
-      }
+  function submitRecord() {
+    if (editingId !== null) {
+      updateRecord();
+    } else {
+      addRecord();
+    }
+  }
 
-      async function updateRecord() {
-        const amount = parseFloat(document.getElementById("amount").value);
-        const type = document.getElementById("type").value;
-        const note = document.getElementById("note").value;
-        const time = document.getElementById("time").value;
-        const category = document.getElementById("category").value;
+  async function updateRecord() {
+    const amount = parseFloat(document.getElementById("amount").value);
+    const type = document.getElementById("type").value;
+    const note = document.getElementById("note").value;
+    const time = document.getElementById("time").value;
+    const category = document.getElementById("category").value;
 
-        if (!amount || !note || !time) {
-          alert("请填写完整信息");
-          return;
-        }
+    if (!amount || !note || !time) {
+      alert("请填写完整信息");
+      return;
+    }
 
-        await fetch(`${API}/record/update?id=${editingId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount, type, note, time, category }),
-        });
+    await authFetch(`${API}/record/update?id=${editingId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, type, note, time, category }),
+    });
 
-        // 重置表单状态
-        editingId = null;
-        document.getElementById("submit-btn").textContent = "添加记录";
-        document.getElementById("amount").value = "";
-        document.getElementById("note").value = "";
-        document.getElementById("category").value = "餐饮";
-        loadRecords();
-      }
+    // 重置表单状态
+    editingId = null;
+    document.getElementById("submit-btn").textContent = "添加记录";
+    document.getElementById("amount").value = "";
+    document.getElementById("note").value = "";
+    document.getElementById("category").value = "餐饮";
+    loadRecords();
+  }
 
-      async function applyFilter() {
-        const month = document.getElementById("filter-month").value;
-        const keyword = document.getElementById("search-keyword").value;
+  async function applyFilter() {
+    const month = document.getElementById("filter-month").value;
+    const keyword = document.getElementById("search-keyword").value;
 
-        const res = await fetch(
-          `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}`,
-        );
-        const data = await res.json();
-        renderList(data);
-        renderStats(data);
-      }
+    const res = await authFetch(
+      `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}`,
+    );
+    const data = await res.json();
+    renderList(data);
+    renderStats(data);
+  }
 
-      async function searchRecords() {
-        applyFilter();
-      }
+  async function searchRecords() {
+    applyFilter();
+  }
 
-      function filterByMonth() {
-        applyFilter();
-      }
+  function filterByMonth() {
+    applyFilter();
+  }
 
-      function resetFilter() {
-        document.getElementById("filter-month").value = "";
-        document.getElementById("search-keyword").value = "";
-        loadRecords();
-      }
+  function resetFilter() {
+    document.getElementById("filter-month").value = "";
+    document.getElementById("search-keyword").value = "";
+    loadRecords();
+  }
 
-      // 页面加载时自动拉取数据
-      window.onload = () => {
-        document.getElementById("time").valueAsDate = new Date();
-        loadRecords();
-      };
+  // 页面加载时自动拉取数据
+  window.onload = () => {
+    document.getElementById("time").valueAsDate = new Date();
+    loadRecords();
+  };
 
-      // 拉取所有记录
-      async function loadRecords() {
-        const res = await fetch(`${API}/record/list`);
-        const data = await res.json();
-        renderList(data);
-        renderStats(data);
-        loadCategoryStats(); // ← 加这行
-      }
+  // 拉取所有记录
+  async function loadRecords() {
+    const res = await authFetch(`${API}/record/list`);
+    const data = await res.json();
+    renderList(data);
+    renderStats(data);
+    loadCategoryStats(); // ← 加这行
+  }
 
-      // 渲染列表
-      function renderList(records) {
-        const container = document.getElementById("record-list");
-        if (records.length === 0) {
-          container.innerHTML = '<p class="empty">暂无记录</p>';
-          return;
-        }
-        container.innerHTML = records
-          .map(
-            (r) => `
+  // 渲染列表
+  function renderList(records) {
+    const container = document.getElementById("record-list");
+    if (records.length === 0) {
+      container.innerHTML = '<p class="empty">暂无记录</p>';
+      return;
+    }
+    container.innerHTML = records
+      .map(
+        (r) => `
         <div class="record-item">
           <div class="record-left">
             <span class="record-note">${r.note}</span>
@@ -596,77 +811,84 @@
           </div>
         </div>
       `,
-          )
-          .join("");
-      }
+      )
+      .join("");
+  }
 
-      // 渲染统计
-      function renderStats(records) {
-        let income = 0,
-          expense = 0;
-        records.forEach((r) => {
-          if (r.type === "收入") income += r.amount;
-          else expense += r.amount;
-        });
-        document.getElementById("total-income").textContent =
-          `¥${income.toFixed(2)}`;
-        document.getElementById("total-expense").textContent =
-          `¥${expense.toFixed(2)}`;
-        document.getElementById("total-balance").textContent =
-          `¥${(income - expense).toFixed(2)}`;
-      }
+  // 渲染统计
+  function renderStats(records) {
+    let income = 0,
+      expense = 0;
+    records.forEach((r) => {
+      if (r.type === "收入") income += r.amount;
+      else expense += r.amount;
+    });
+    document.getElementById("total-income").textContent =
+      `¥${income.toFixed(2)}`;
+    document.getElementById("total-expense").textContent =
+      `¥${expense.toFixed(2)}`;
+    document.getElementById("total-balance").textContent =
+      `¥${(income - expense).toFixed(2)}`;
+  }
 
-      // 添加记录
-      async function addRecord() {
-        const amount = parseFloat(document.getElementById("amount").value);
-        const type = document.getElementById("type").value;
-        const note = document.getElementById("note").value;
-        const time = document.getElementById("time").value;
-        const category = document.getElementById("category").value;
+  // 添加记录
+  async function addRecord() {
+    const amount = parseFloat(document.getElementById("amount").value);
+    const type = document.getElementById("type").value;
+    const note = document.getElementById("note").value;
+    const time = document.getElementById("time").value;
+    const category = document.getElementById("category").value;
 
-        if (!amount || !note || !time) {
-          alert("请填写完整信息");
-          return;
-        }
+    if (!amount || !note || !time) {
+      alert("请填写完整信息");
+      return;
+    }
 
-        await fetch(`${API}/record/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount, type, note, time, category }),
-        });
+    await authFetch(`${API}/record/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, type, note, time, category }),
+    });
 
-        // 清空表单，重新加载
-        document.getElementById("amount").value = "";
-        document.getElementById("note").value = "";
-        document.getElementById("category").value = "餐饮";
-        loadRecords();
-      }
+    // 清空表单，重新加载
+    document.getElementById("amount").value = "";
+    document.getElementById("note").value = "";
+    document.getElementById("category").value = "餐饮";
+    loadRecords();
+  }
 
-      // 删除记录
-      async function deleteRecord(id) {
-        const btn = document.querySelector(
-          `.btn-del[onclick="deleteRecord(${id})"]`,
-        );
-        const item = btn.closest(".record-item");
-        item.style.transition = "opacity 0.2s";
-        item.style.opacity = "0";
+  // 删除记录
+  async function deleteRecord(id) {
+    const btn = document.querySelector(
+      `.btn-del[onclick="deleteRecord(${id})"]`,
+    );
+    const item = btn.closest(".record-item");
+    item.style.transition = "opacity 0.2s";
+    item.style.opacity = "0";
 
-        // 等动画结束、请求完成，再刷新
-        await Promise.all([
-          fetch(`${API}/record/delete?id=${id}`, { method: "DELETE" }),
-          new Promise((resolve) => setTimeout(resolve, 200)),
-        ]);
+    // 等动画结束、请求完成，再刷新
+    await Promise.all([
+      authFetch(`${API}/record/delete?id=${id}`, { method: "DELETE" }),
+      new Promise((resolve) => setTimeout(resolve, 200)),
+    ]);
 
-        loadRecords();
-      }
+    loadRecords();
+  }
 
-      //导出
-      function exportRecords() {
-        const a = document.createElement("a");
-        a.href = `${API}/record/export`;
-        a.download = "records.csv";
-        a.click();
-      }
-    </script>
-  </body>
+  //导出
+  async function exportRecords() {
+    const res = await authFetch(`${API}/record/export`);
+    if (!res) return;
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'records.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+
 </html>

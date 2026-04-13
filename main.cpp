@@ -76,17 +76,17 @@ int main()
     // 允许所有跨域请求
     server.set_default_headers({{"Access-Control-Allow-Origin", "*"},
                                 {"Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"},
-                                {"Access-Control-Allow-Headers", "Content-Type"}});
-    // 处理 OPTIONS 预检请求
-    server.Options(".*", [](const httplib::Request &, httplib::Response &res)
-                   { res.status = 204; });
+                                {"Access-Control-Allow-Headers", "Content-Type, token"}});
+        // 处理 OPTIONS 预检请求
+        server.Options(".*", [](const httplib::Request &, httplib::Response &res)
+                       { res.status = 204; });
 
-    std::ostringstream information;
-    information << "Accounting Server Started, Listening http://" << config.server.host << ":" << config.server.port;
+        std::ostringstream information;
+        information << "Accounting Server Started, Listening http://" << config.server.host << ":" << config.server.port;
 
-    Logger::info(information.str());
-    bool ok = server.listen(config.server.host.c_str(), config.server.port); // ctrl+c stop
-    Logger::info("listen return: " + std::to_string(ok));
+        Logger::info(information.str());
+        bool ok = server.listen(config.server.host.c_str(), config.server.port); // ctrl+c stop
+        Logger::info("listen return: " + std::to_string(ok));
 
-    return 0;
+        return 0;
 }

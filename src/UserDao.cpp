@@ -6,8 +6,10 @@ UserDao::~UserDao() {}
 // 添加
 bool UserDao::add(const User &user)
 {
+    // 密码加密
+    password_Crypto _password = Crypto::sha256(user.password);
     std::ostringstream sql;
-    sql << "INSERT INTO users (username, password) VALUES ('" << user.username << "', '" << user.password << "')";
+    sql << "INSERT INTO users (username, password) VALUES ('" << user.username << "', '" << _password << "')";
     return db.execute(sql.str());
 }
 
@@ -34,8 +36,10 @@ std::optional<User> UserDao::query(const std::string &username)
 // 更新
 bool UserDao::update(const User &user)
 {
+    // 密码加密
+    password_Crypto _password = Crypto::sha256(user.password);
     std::ostringstream sql;
-    sql << "UPDATE users SET username = '" << user.username << "', password = '" << user.password << "' WHERE username = '" << user.username << "'";
+    sql << "UPDATE users SET username = '" << user.username << "', password = '" << _password << "' WHERE username = '" << user.username << "'";
     return db.execute(sql.str());
 }
 // 删除

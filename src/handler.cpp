@@ -82,7 +82,7 @@ void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
         {
             return;
         }
-        
+
         auto records = dao.statByCategory(userId);
 
         Json result = Json::array(); // result 是一个数组
@@ -149,7 +149,7 @@ void Handler::Search(RecordDao &dao, const Request &req, Response &res)
         std::string keyword = req.get_param_value("keyword");
         // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
         Json result = Json::array();
-        
+
         for (auto &r : dao.search(keyword, userId))
         {
             Json item;
@@ -181,7 +181,7 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
         std::string keyword = req.get_param_value("keyword");
         std::string month = req.get_param_value("month");
         Json result = Json::array();
-        
+
         for (auto &r : dao.filter(keyword, month, userId))
         {
             Json item;
@@ -250,7 +250,10 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        int id = std::stoi(req.get_param_value("id"));
+        std::string idStr = req.get_param_value("id");
+        Logger::info("delete id param: " + idStr);
+        int id = std::stoi(idStr);
+
         Json result;
 
         if (dao.remove(id, userId))
@@ -285,7 +288,12 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
+        Logger::info("export user_id: " + std::to_string(userId));
+
         auto records = dao.list_order_by_id(userId);
+
+        Logger::info("export records: " + std::to_string(records.size()));
+
         std::ostringstream oss;
         oss << "\xEF\xBB\xBF"; // UTF-8 BOM，加在第一行前面
         oss << "id,金额,备注,类型,日期,分类\n";
@@ -409,10 +417,12 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
 
         User user;
         JsonToUser(j, user);
+
         auto userOptional = dao.query(user.username);
         Json result;
+        UserDao::password_Crypto _password = Crypto::sha256(user.password);
 
-        if (!userOptional.has_value() || userOptional.value().password != user.password)
+        if (!userOptional.has_value() || userOptional.value().password != _password)
         {
             result["status"] = "error";
             result["message"] = "user not found or password error";
@@ -532,6 +542,7 @@ void Handler::JsonToRecord(Json &j, Record &r)
 
 void Handler::RecordToJson(const Record &r, Json &j)
 {
+    j["id"] = r.id;
     j["amount"] = r.amount;
     j["note"] = r.note;
     j["type"] = r.type;

@@ -9,6 +9,7 @@
 #include <optional>
 
 #include "DBconnect.h"
+#include "Crypto.h"
 
 struct User
 {
@@ -20,6 +21,8 @@ struct User
 class UserDao
 {
 public:
+    using password_Crypto = std::string;
+
     UserDao(DBconnect &db);
     ~UserDao();
 

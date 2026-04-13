@@ -42,6 +42,7 @@ target_compile_options(AccountingServer PRIVATE /utf-8)
 # 链接 MySQL
 target_link_directories(AccountingServer PRIVATE ${MYSQL_LIB_DIR})
 target_link_libraries(AccountingServer PRIVATE libmysql)
+target_link_libraries(AccountingServer PRIVATE crypt32)
 
 # 拷贝 libmysql.dll 到输出目录
 add_custom_command(TARGET AccountingServer POST_BUILD
