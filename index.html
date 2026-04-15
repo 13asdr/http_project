@@ -454,6 +454,39 @@
       margin-left: 8px;
       font-weight: 400;
     }
+
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .pagination-info {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .pagination-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .page-jump-input,
+    .page-size-select {
+      background: #1a1a1a;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #e0e0e0;
+      outline: none;
+      width: 72px;
+    }
   </style>
 </head>
 
@@ -578,6 +611,20 @@
           <button class="btn-filter" onclick="filterByMonth()">筛选</button>
           <button class="btn-reset" onclick="resetFilter()">重置</button>
         </div>
+        <div class="pagination-bar">
+          <div class="pagination-info" id="pagination-info">第 1 / 1 页 · 共 0 条</div>
+          <div class="pagination-actions">
+            <button class="btn-reset" id="prev-page-btn" onclick="changePage(-1)">上一页</button>
+            <button class="btn-filter" id="next-page-btn" onclick="changePage(1)">下一页</button>
+            <input type="number" class="page-jump-input" id="page-jump-input" min="1" placeholder="页码" />
+            <button class="btn-search" onclick="jumpToPage()">跳转</button>
+            <select class="page-size-select" id="page-size-select" onchange="changePageSize()">
+              <option value="10" selected>10/页</option>
+              <option value="20">20/页</option>
+              <option value="50">50/页</option>
+            </select>
+          </div>
+        </div>
       </div>
 </body>
 
@@ -656,6 +703,9 @@
   }
 
   let editingId = null;
+  let currentPage = 1;
+  let currentPageSize = 10;
+  let currentTotal = 0;
 
   async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
@@ -745,55 +795,100 @@
     loadRecords();
   }
 
-  async function applyFilter() {
+  function getRecordsFromResponse(data) {
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.records)) {
+      return data.records;
+    }
+    return [];
+  }
+
+  function updatePaginationState(data, fallbackRecordsLength = 0) {
+    if (data && !Array.isArray(data)) {
+      currentTotal = Number(data.total ?? 0);
+      currentPage = Number(data.page ?? 1);
+      currentPageSize = Number(data.pageSize ?? currentPageSize);
+      return;
+    }
+    currentTotal = fallbackRecordsLength;
+    currentPage = 1;
+  }
+
+  function getTotalPages() {
+    return Math.max(1, Math.ceil(currentTotal / currentPageSize));
+  }
+
+  function hasActiveFilter() {
     const month = document.getElementById("filter-month").value;
     const keyword = document.getElementById("search-keyword").value;
+    return month !== "" || keyword.trim() !== "";
+  }
+
+  function renderPagination() {
+    const totalPages = getTotalPages();
+    const info = document.getElementById("pagination-info");
+    const prevBtn = document.getElementById("prev-page-btn");
+    const nextBtn = document.getElementById("next-page-btn");
+
+    info.textContent = `第 ${currentPage} / ${totalPages} 页 · 共 ${currentTotal} 条`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+  }
+
+  async function applyFilter(page = 1) {
+    const month = document.getElementById("filter-month").value;
+    const keyword = document.getElementById("search-keyword").value;
+    currentPage = page;
 
     const res = await authFetch(
-      `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}`,
+      `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}&page=${currentPage}&pageSize=${currentPageSize}`,
     );
     const data = await res.json();
     renderList(data);
     renderStats(data);
+    const records = getRecordsFromResponse(data);
+    updatePaginationState(data, records.length);
+    renderPagination();
   }
 
   async function searchRecords() {
-    applyFilter();
+    applyFilter(1);
   }
 
   function filterByMonth() {
-    applyFilter();
+    applyFilter(1);
   }
 
   function resetFilter() {
     document.getElementById("filter-month").value = "";
     document.getElementById("search-keyword").value = "";
-    loadRecords();
+    loadRecords(1);
   }
 
-  // 页面加载时自动拉取数据
-  window.onload = () => {
-    document.getElementById("time").valueAsDate = new Date();
-    loadRecords();
-  };
-
   // 拉取所有记录
-  async function loadRecords() {
-    const res = await authFetch(`${API}/record/list`);
+  async function loadRecords(page = 1) {
+    currentPage = page;
+    const res = await authFetch(`${API}/record/list?page=${currentPage}&pageSize=${currentPageSize}`);
     const data = await res.json();
     renderList(data);
     renderStats(data);
+    const records = getRecordsFromResponse(data);
+    updatePaginationState(data, records.length);
+    renderPagination();
     loadCategoryStats(); // ← 加这行
   }
 
   // 渲染列表
   function renderList(records) {
+    const list = getRecordsFromResponse(records);
     const container = document.getElementById("record-list");
-    if (records.length === 0) {
+    if (list.length === 0) {
       container.innerHTML = '<p class="empty">暂无记录</p>';
       return;
     }
-    container.innerHTML = records
+    container.innerHTML = list
       .map(
         (r) => `
         <div class="record-item">
@@ -817,9 +912,10 @@
 
   // 渲染统计
   function renderStats(records) {
+    const list = getRecordsFromResponse(records);
     let income = 0,
       expense = 0;
-    records.forEach((r) => {
+    list.forEach((r) => {
       if (r.type === "收入") income += r.amount;
       else expense += r.amount;
     });
@@ -872,7 +968,48 @@
       new Promise((resolve) => setTimeout(resolve, 200)),
     ]);
 
-    loadRecords();
+    if (hasActiveFilter()) {
+      applyFilter(currentPage);
+    } else {
+      loadRecords(currentPage);
+    }
+  }
+
+  function changePage(offset) {
+    const targetPage = currentPage + offset;
+    const totalPages = getTotalPages();
+    if (targetPage < 1 || targetPage > totalPages) return;
+    if (hasActiveFilter()) {
+      applyFilter(targetPage);
+    } else {
+      loadRecords(targetPage);
+    }
+  }
+
+  function jumpToPage() {
+    const input = document.getElementById("page-jump-input");
+    const targetPage = Number(input.value);
+    const totalPages = getTotalPages();
+    if (!Number.isInteger(targetPage) || targetPage < 1) return;
+    if (targetPage > totalPages) return;
+    if (hasActiveFilter()) {
+      applyFilter(targetPage);
+    } else {
+      loadRecords(targetPage);
+    }
+    input.value = "";
+  }
+
+  function changePageSize() {
+    const pageSizeSelect = document.getElementById("page-size-select");
+    const nextPageSize = Number(pageSizeSelect.value);
+    if (!Number.isInteger(nextPageSize) || nextPageSize <= 0) return;
+    currentPageSize = nextPageSize;
+    if (hasActiveFilter()) {
+      applyFilter(1);
+    } else {
+      loadRecords(1);
+    }
   }
 
   //导出
