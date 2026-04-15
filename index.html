@@ -616,9 +616,9 @@
           <div class="pagination-actions">
             <button class="btn-reset" id="prev-page-btn" onclick="changePage(-1)">上一页</button>
             <button class="btn-filter" id="next-page-btn" onclick="changePage(1)">下一页</button>
-            <input type="number" class="page-jump-input" id="page-jump-input" min="1" placeholder="页码" />
+            <input type="number" class="page-jump-input" id="page-jump-input" min="1" placeholder="页码" aria-label="跳转到页码" />
             <button class="btn-search" onclick="jumpToPage()">跳转</button>
-            <select class="page-size-select" id="page-size-select" onchange="changePageSize()">
+            <select class="page-size-select" id="page-size-select" onchange="changePageSize()" aria-label="每页显示条数">
               <option value="10" selected>10/页</option>
               <option value="20">20/页</option>
               <option value="50">50/页</option>
@@ -630,6 +630,7 @@
 
 <script>
   const API = "http://localhost:8080";
+  const DEFAULT_PAGE_SIZE = 10;
   let currentTab = 'login';
 
   // 页面加载时检查 token
@@ -704,7 +705,7 @@
 
   let editingId = null;
   let currentPage = 1;
-  let currentPageSize = 10;
+  let currentPageSize = DEFAULT_PAGE_SIZE;
   let currentTotal = 0;
 
   async function authFetch(url, options = {}) {
@@ -809,7 +810,8 @@
     if (data && !Array.isArray(data)) {
       currentTotal = Number(data.total ?? 0);
       currentPage = Number(data.page ?? 1);
-      currentPageSize = Number(data.pageSize ?? currentPageSize);
+      const nextPageSize = Number(data.pageSize ?? DEFAULT_PAGE_SIZE);
+      currentPageSize = nextPageSize > 0 ? nextPageSize : DEFAULT_PAGE_SIZE;
       return;
     }
     currentTotal = fallbackRecordsLength;
@@ -817,7 +819,8 @@
   }
 
   function getTotalPages() {
-    return Math.max(1, Math.ceil(currentTotal / currentPageSize));
+    const safePageSize = currentPageSize > 0 ? currentPageSize : DEFAULT_PAGE_SIZE;
+    return Math.max(1, Math.ceil(currentTotal / safePageSize));
   }
 
   function hasActiveFilter() {
@@ -831,10 +834,13 @@
     const info = document.getElementById("pagination-info");
     const prevBtn = document.getElementById("prev-page-btn");
     const nextBtn = document.getElementById("next-page-btn");
+    const jumpInput = document.getElementById("page-jump-input");
 
     info.textContent = `第 ${currentPage} / ${totalPages} 页 · 共 ${currentTotal} 条`;
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
+    jumpInput.min = "1";
+    jumpInput.max = String(totalPages);
   }
 
   async function applyFilter(page = 1) {
@@ -988,10 +994,20 @@
 
   function jumpToPage() {
     const input = document.getElementById("page-jump-input");
-    const targetPage = Number(input.value);
+    const rawValue = input.value.trim();
+    const targetPage = Number(rawValue);
     const totalPages = getTotalPages();
-    if (!Number.isInteger(targetPage) || targetPage < 1) return;
-    if (targetPage > totalPages) return;
+    if (rawValue === "" || Number.isNaN(targetPage)) {
+      input.setCustomValidity("请输入数字页码");
+      input.reportValidity();
+      return;
+    }
+    if (!Number.isInteger(targetPage) || targetPage < 1 || targetPage > totalPages) {
+      input.setCustomValidity(`请输入 1 到 ${totalPages} 的页码`);
+      input.reportValidity();
+      return;
+    }
+    input.setCustomValidity("");
     if (hasActiveFilter()) {
       applyFilter(targetPage);
     } else {
@@ -1003,7 +1019,10 @@
   function changePageSize() {
     const pageSizeSelect = document.getElementById("page-size-select");
     const nextPageSize = Number(pageSizeSelect.value);
-    if (!Number.isInteger(nextPageSize) || nextPageSize <= 0) return;
+    if (!Number.isInteger(nextPageSize) || nextPageSize <= 0) {
+      console.warn("Invalid page size:", pageSizeSelect.value);
+      return;
+    }
     currentPageSize = nextPageSize;
     if (hasActiveFilter()) {
       applyFilter(1);
