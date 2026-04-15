@@ -20,11 +20,15 @@ bool RecordDao::add(const Record &record)
     return db.execute(sql.str());
 }
 
-std::vector<Record> RecordDao::list_order_by_time(int user_id)
+std::vector<Record> RecordDao::list_order_by_time(int user_id, limit l)
 {
     std::vector<Record> result;
-    MYSQL_RES *res = db.query("SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " + std::to_string(user_id) + " ORDER BY time DESC");
+    std::ostringstream sql;
+    int offset = (l.page - 1) * l.pageSize;
 
+    sql << "SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " << user_id << " ORDER BY time DESC LIMIT " << l.pageSize << " OFFSET " << offset;
+
+    MYSQL_RES *res = db.query(sql.str());
     if (!res)
     {
         return result;
@@ -44,8 +48,11 @@ std::vector<Record> RecordDao::list_order_by_time(int user_id)
 std::vector<Record> RecordDao::list_order_by_id(int user_id)
 {
     std::vector<Record> result;
-    MYSQL_RES *res = db.query("SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " + std::to_string(user_id) + " ORDER BY id ASC");
+    std::ostringstream sql;
 
+    sql << "SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " << user_id << " ORDER BY id ASC";
+
+    MYSQL_RES *res = db.query(sql.str());
     if (!res)
     {
         return result;
@@ -62,14 +69,15 @@ std::vector<Record> RecordDao::list_order_by_id(int user_id)
     return result;
 }
 
-std::vector<Record> RecordDao::listByMonth(const std::string &month_type, int user_id)
+std::vector<Record> RecordDao::listByMonth(const std::string &month_type, int user_id, limit l)
 {
     std::vector<Record> result;
-
     std::ostringstream sql;
+    int offset = (l.page - 1) * l.pageSize;
+
     sql << "SELECT id, amount, note, type, time, category ,user_id FROM records "
         << "WHERE DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' AND user_id = " << user_id << " "
-        << "ORDER BY time DESC";
+        << "ORDER BY time DESC LIMIT " << l.pageSize << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
@@ -101,13 +109,15 @@ std::map<std::string, double> RecordDao::statByCategory(int user_id)
     return result;
 }
 
-std::vector<Record> RecordDao::search(const std::string &keyword, int user_id)
+std::vector<Record> RecordDao::search(const std::string &keyword, int user_id, limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
+    int offset = (l.page - 1) * l.pageSize;
+
     sql << "SELECT id,amount, note, type, time, category ,user_id FROM records "
         << "WHERE note LIKE '%" << keyword << "%' AND user_id = " << user_id << " "
-        << "ORDER BY time DESC ";
+        << "ORDER BY time DESC LIMIT " << l.pageSize << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
@@ -124,10 +134,14 @@ std::vector<Record> RecordDao::search(const std::string &keyword, int user_id)
     return result;
 }
 
-std::vector<Record> RecordDao::filter(const std::string &keyword, const std::string &month_type, int user_id)
+std::vector<Record> RecordDao::filter(const std::string &keyword, const std::string &month_type, int user_id, limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
+    int offset = (l.page - 1) * l.pageSize;
+
+    int limit = l.pageSize;
+
     sql << "SELECT id,amount, note, type, time, category ,user_id FROM records "
         << "where 1=1 ";
 
@@ -139,7 +153,7 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     {
         sql << "AND DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' ";
     }
-    sql << "AND user_id = " << user_id << " ORDER BY time DESC ";
+    sql << "AND user_id = " << user_id << " ORDER BY time DESC LIMIT " << limit << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
@@ -156,7 +170,33 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     return result;
 }
 
-bool RecordDao::update(int id, const Record &record , int user_id)
+int RecordDao::count_records(int user_id, const std::string& month_type, const std::string& keyword)
+{
+    std::ostringstream sql;
+    sql << "SELECT COUNT(*) FROM records WHERE 1=1";
+
+    if (!month_type.empty())
+    {
+        sql << "AND DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' ";
+    }
+    if (!keyword.empty())
+    {
+        sql << "AND note LIKE '%" << keyword << "%' ";
+    }
+    sql << "AND user_id = " << user_id;
+
+    MYSQL_RES *res = db.query(sql.str());
+    if (!res)
+        return 0;
+
+    MYSQL_ROW row = mysql_fetch_row(res);
+    int count = row ? std::stoi(row[0]) : 0;
+
+    mysql_free_result(res);
+    return count;
+}
+
+bool RecordDao::update(int id, const Record &record, int user_id)
 {
     std::ostringstream sql;
     sql << "UPDATE records set amount = " << record.amount << ","

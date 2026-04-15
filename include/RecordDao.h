@@ -7,6 +7,12 @@
 
 #include "DBconnect.h"
 
+struct limit // 分页参数
+{
+    int page;
+    int pageSize;
+};
+
 struct Record
 {
     int id;
@@ -27,18 +33,22 @@ public:
     // 添加
     bool add(const Record &record);
 
+    // 分页查询记录
     // 查询记录
-    std::vector<Record> list_order_by_time(int user_id); // 查询所有记录
-    std::vector<Record> list_order_by_id(int user_id);
-    std::vector<Record> listByMonth(const std::string &month_type, int user_id); // 按月份查找
-    std::map<std::string, double> statByCategory(int user_id);                   // 查询每个类别别的总金额
+    std::vector<Record> list_order_by_time(int user_id, limit l);                         // 时间排序查询所有记录
+    std::vector<Record> list_order_by_id(int user_id);                                    // id排序查询所有记录(专门用于导出)
+    std::vector<Record> listByMonth(const std::string &month_type, int user_id, limit l); // 按月份查找
+    std::map<std::string, double> statByCategory(int user_id);                            // 查询每个类别别的总金额
 
     // 模糊查询备注关键词
-    std::vector<Record> search(const std::string &keyword, int user_id);                                // 搜索备注关键词,模糊查询
-    std::vector<Record> filter(const std::string &keyword, const std::string &month_type, int user_id); // 月份筛选加模糊查询备注关键词
+    std::vector<Record> search(const std::string &keyword, int user_id, limit l);                                // 搜索备注关键词,模糊查询
+    std::vector<Record> filter(const std::string &keyword, const std::string &month_type, int user_id, limit l); // 月份筛选加模糊查询备注关键词
+
+    // 查询中记录数目
+    int count_records(int user_id, const std::string &month_type = "", const std::string &keyword = "");
 
     // 更新
-    bool update(int id, const Record &record , int user_id);
+    bool update(int id, const Record &record, int user_id);
 
     bool remove(int id, int user_id);
 
