@@ -454,6 +454,44 @@
       margin-left: 8px;
       font-weight: 400;
     }
+
+    /* 分页样式 */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 0.5px solid #2e2e2e;
+    }
+
+    .pagination button {
+      padding: 6px 10px;
+      background: #2a2a3a;
+      border: 0.5px solid #444;
+      border-radius: 6px;
+      color: #a0a0f0;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      background: #1a1a1a;
+      border-color: #333;
+      color: #555;
+      cursor: not-allowed;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #32324a;
+    }
+
+    .pagination .page-info {
+      font-size: 12px;
+      color: #888;
+      margin: 0 10px;
+    }
   </style>
 </head>
 
@@ -578,12 +616,32 @@
           <button class="btn-filter" onclick="filterByMonth()">筛选</button>
           <button class="btn-reset" onclick="resetFilter()">重置</button>
         </div>
+        <!-- 分页组件 -->
+        <div class="pagination" id="pagination" style="display: none">
+          <button onclick="previousPage()">上一页</button>
+          <span class="page-info">
+            第 <span id="current-page">1</span> / <span id="total-pages">1</span> 页
+          </span>
+          <button onclick="nextPage()">下一页</button>
+          <span class="page-info">共 <span id="total-records">0</span> 条</span>
+        </div>
       </div>
 </body>
 
 <script>
   const API = "http://localhost:8080";
   let currentTab = 'login';
+
+
+  // 分页状态
+  let paginationState = {
+    currentPage: 1,
+    pageSize: 10,
+    total: 0,
+    isFiltered: false,
+    keyword: '',
+    month: ''
+  };
 
   // 页面加载时检查 token
   window.onload = () => {
@@ -742,6 +800,7 @@
     document.getElementById("amount").value = "";
     document.getElementById("note").value = "";
     document.getElementById("category").value = "餐饮";
+    resetPagination();
     loadRecords();
   }
 
@@ -749,12 +808,19 @@
     const month = document.getElementById("filter-month").value;
     const keyword = document.getElementById("search-keyword").value;
 
+    // 保存筛选状态，重置到第一页
+    paginationState.isFiltered = true;
+    paginationState.keyword = keyword;
+    paginationState.month = month;
+    paginationState.currentPage = 1;
+
     const res = await authFetch(
-      `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}`,
+      `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}&page=${paginationState.currentPage}&pageSize=${paginationState.pageSize}`,
     );
     const data = await res.json();
-    renderList(data);
-    renderStats(data);
+    // ✅ 处理新的分页 JSON 结构
+    renderListWithPagination(data);
+    renderStats(data.records);
   }
 
   async function searchRecords() {
@@ -768,6 +834,7 @@
   function resetFilter() {
     document.getElementById("filter-month").value = "";
     document.getElementById("search-keyword").value = "";
+    resetPagination();
     loadRecords();
   }
 
@@ -781,15 +848,113 @@
   async function loadRecords() {
     const res = await authFetch(`${API}/record/list`);
     const data = await res.json();
-    renderList(data);
-    renderStats(data);
-    loadCategoryStats(); // ← 加这行
+
+    // 如果响应是数组，转换为分页格式；如果已是分页格式则直接处理
+    if (Array.isArray(data)) {
+      renderList(data);
+      renderStats(data);
+    } else {
+      renderListWithPagination(data);
+      renderStats(data.records);
+    }
+
+    loadCategoryStats();
   }
 
   // 渲染列表
+
+  // ✅ 新增：渲染列表并处理分页
+  function renderListWithPagination(responseData) {
+    const { total, page, pageSize, records } = responseData;
+
+    // 更新分页状态
+    paginationState.total = total;
+    paginationState.currentPage = page;
+    paginationState.pageSize = pageSize;
+
+    renderList(records);
+    updatePaginationUI();
+  }
+
+  // ✅ 更新分页 UI
+  function updatePaginationUI() {
+    const pagination = document.getElementById('pagination');
+    const totalPages = Math.ceil(paginationState.total / paginationState.pageSize);
+
+    if (paginationState.total === 0) {
+      pagination.style.display = 'none';
+      return;
+    }
+
+    document.getElementById('current-page').textContent = paginationState.currentPage;
+    document.getElementById('total-pages').textContent = totalPages;
+    document.getElementById('total-records').textContent = paginationState.total;
+    pagination.style.display = 'flex';
+  }
+
+  // ✅ 上一页
+  async function previousPage() {
+    if (paginationState.currentPage > 1) {
+      paginationState.currentPage--;
+      await loadPageData();
+    }
+  }
+
+  // ✅ 下一页
+  async function nextPage() {
+    const totalPages = Math.ceil(paginationState.total / paginationState.pageSize);
+    if (paginationState.currentPage < totalPages) {
+      paginationState.currentPage++;
+      await loadPageData();
+    }
+  }
+
+  // ✅ 加载指定页数据
+  async function loadPageData() {
+    console.log('当前页码:', paginationState.currentPage);
+    console.log('是否筛选:', paginationState.isFiltered);
+
+    if (paginationState.isFiltered) {
+      const month = paginationState.month;
+      const keyword = paginationState.keyword;
+      const url = `${API}/record/filter?month=${encodeURIComponent(month)}&keyword=${encodeURIComponent(keyword)}&page=${paginationState.currentPage}&pageSize=${paginationState.pageSize}`;
+      console.log('请求URL:', url);  // ✅ 打印请求URL
+
+      const res = await authFetch(url);
+      const data = await res.json();
+      console.log('返回数据:', data);  // ✅ 打印返回的数据
+      renderListWithPagination(data);
+      renderStats(data.records);
+    } else {
+      // 同样添加日志
+      const url = `${API}/record/list?page=${paginationState.currentPage}&pageSize=${paginationState.pageSize}`;
+      console.log('请求URL:', url);
+
+      const res = await authFetch(url);
+      const data = await res.json();
+      console.log('返回数据:', data);
+
+      if (Array.isArray(data)) {
+        renderList(data);
+        renderStats(data);
+      } else {
+        renderListWithPagination(data);
+        renderStats(data.records);
+      }
+    }
+  }
+
+  // ✅ 重置分页
+  function resetPagination() {
+    paginationState.currentPage = 1;
+    paginationState.isFiltered = false;
+    paginationState.keyword = '';
+    paginationState.month = '';
+  }
+
   function renderList(records) {
     const container = document.getElementById("record-list");
-    if (records.length === 0) {
+    if (!records || records.length === 0) {
       container.innerHTML = '<p class="empty">暂无记录</p>';
       return;
     }
@@ -817,8 +982,14 @@
 
   // 渲染统计
   function renderStats(records) {
-    let income = 0,
-      expense = 0;
+    let income = 0, expense = 0;
+
+    if (!records || records.length === 0) {
+      document.getElementById("total-income").textContent = `¥0`;
+      document.getElementById("total-expense").textContent = `¥0`;
+      document.getElementById("total-balance").textContent = `¥0`;
+      return;
+    }
     records.forEach((r) => {
       if (r.type === "收入") income += r.amount;
       else expense += r.amount;
@@ -854,6 +1025,7 @@
     document.getElementById("amount").value = "";
     document.getElementById("note").value = "";
     document.getElementById("category").value = "餐饮";
+    resetPagination();
     loadRecords();
   }
 
@@ -872,6 +1044,7 @@
       new Promise((resolve) => setTimeout(resolve, 200)),
     ]);
 
+    resetPagination();
     loadRecords();
   }
 

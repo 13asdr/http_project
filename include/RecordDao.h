@@ -6,6 +6,7 @@
 #include <map>
 
 #include "DBconnect.h"
+#include "Logger.h"
 
 struct limit // 分页参数
 {
@@ -35,7 +36,7 @@ public:
 
     // 分页查询记录
     // 查询记录
-    std::vector<Record> list_order_by_time(int user_id, limit l);                         // 时间排序查询所有记录
+    std::vector<Record> list_order_by_timeAndId(int user_id, limit l);                         // 时间排序查询所有记录
     std::vector<Record> list_order_by_id(int user_id);                                    // id排序查询所有记录(专门用于导出)
     std::vector<Record> listByMonth(const std::string &month_type, int user_id, limit l); // 按月份查找
     std::map<std::string, double> statByCategory(int user_id);                            // 查询每个类别别的总金额

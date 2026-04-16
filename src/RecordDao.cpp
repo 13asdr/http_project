@@ -20,13 +20,13 @@ bool RecordDao::add(const Record &record)
     return db.execute(sql.str());
 }
 
-std::vector<Record> RecordDao::list_order_by_time(int user_id, limit l)
+std::vector<Record> RecordDao::list_order_by_timeAndId(int user_id, limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
     int offset = (l.page - 1) * l.pageSize;
 
-    sql << "SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " << user_id << " ORDER BY time DESC LIMIT " << l.pageSize << " OFFSET " << offset;
+    sql << "SELECT id, amount, note, type, time, category ,user_id FROM records WHERE user_id = " << user_id << " ORDER BY time DESC, id DESC LIMIT " << l.pageSize << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
@@ -139,7 +139,6 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     std::vector<Record> result;
     std::ostringstream sql;
     int offset = (l.page - 1) * l.pageSize;
-
     int limit = l.pageSize;
 
     sql << "SELECT id,amount, note, type, time, category ,user_id FROM records "
@@ -153,7 +152,7 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     {
         sql << "AND DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' ";
     }
-    sql << "AND user_id = " << user_id << " ORDER BY time DESC LIMIT " << limit << " OFFSET " << offset;
+    sql << "AND user_id = " << user_id << " ORDER BY time DESC, id DESC LIMIT " << limit << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)
@@ -170,10 +169,10 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     return result;
 }
 
-int RecordDao::count_records(int user_id, const std::string& month_type, const std::string& keyword)
+int RecordDao::count_records(int user_id, const std::string &month_type, const std::string &keyword)
 {
     std::ostringstream sql;
-    sql << "SELECT COUNT(*) FROM records WHERE 1=1";
+    sql << "SELECT COUNT(*) FROM records WHERE 1=1 ";
 
     if (!month_type.empty())
     {
