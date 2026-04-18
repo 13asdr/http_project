@@ -5,18 +5,17 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
 {
     try
     {
-        // 打印日志
-        Logger::info("Handler::Add , RecordAdd request received"); // 不要打印body参数
+        Logger::info("Handler::Add , RecordAdd request received");
 
-        // 处理body参数
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Add , RecordAdd request body is not valid JSON");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
             return;
         }
+
         auto j = Json::parse(req.body);
-        if (Validator::validateRecordJson(j, res) == false)
+        if (!Validator::validateRecordJson(j, res))
         {
             return;
         }
@@ -27,11 +26,10 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        // 解析JSON
         Record r;
         JsonToRecord(j, r);
         r.user_id = userId;
-        // 执行添加操作然后返回结果
+
         if (dao.add(r))
         {
             Logger::info("Handler::Add , RecordAdd request processed successfully");
@@ -45,8 +43,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -56,22 +53,19 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
     {
         Logger::info("Handler::List , Record list request received");
 
-        // 获取user_id
         auto userId = authCheck(req, res);
         if (userId == -1)
         {
             return;
         }
-        // 获取分页参数
+
         limit l;
-        if (Validator::validateLimit(req, res, l) == false)
+        if (!Validator::validateLimit(req, res, l))
         {
             return;
         }
 
-        // 查询记录条数
         int count = dao.count_records(userId);
-        // 查询记录
         auto records = dao.list_order_by_timeAndId(userId, l);
         Json records_json = Json::array();
         for (auto &r : records)
@@ -86,13 +80,13 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
         res_json["page"] = l.page;
         res_json["pageSize"] = l.pageSize;
         res_json["records"] = records_json;
+
         Logger::info("Handler::List , Record list request processed successfully");
         Handler::sendSuccess(res, res_json, "record list retrieved successfully");
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 };
 
@@ -109,7 +103,7 @@ void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
 
         auto records = dao.statByCategory(userId);
 
-        Json result = Json::array(); // result 是一个数组
+        Json result = Json::array();
         for (const auto &[key, value] : records)
         {
             Json item;
@@ -117,13 +111,13 @@ void Handler::StatByCategory(RecordDao &dao, const Request &req, Response &res)
             item["total"] = value;
             result.push_back(item);
         }
+
         Logger::info("Handler::StatByCategory , Record statByCategory request processed successfully");
         Handler::sendSuccess(res, result, "record statByCategory retrieved successfully");
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -137,8 +131,9 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
         {
             return;
         }
+
         limit l;
-        if (Validator::validateLimit(req, res, l) == false)
+        if (!Validator::validateLimit(req, res, l))
         {
             return;
         }
@@ -155,7 +150,6 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
             records_json.push_back(item);
         }
 
-        // 构建响应JSON
         Json res_json;
         res_json["total"] = count;
         res_json["page"] = l.page;
@@ -167,8 +161,7 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是record/filter
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -183,22 +176,24 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        // 参数检验
-        if (req.params.find("id") == req.params.end())
+        auto idIt = req.params.find("id");
+        if (idIt == req.params.end())
         {
             Logger::error("Handler::Update , Record update request missing id parameter");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing id parameter");
             return;
         }
+
         int id = 0;
-        if (Validator::parsePositiveInt(req.params.find("id")->second, id) == false)
+        if (!Validator::parsePositiveInt(idIt->second, id))
         {
-            Logger::error("Handler::Update , Record update request has invalid id parameter: " + req.params.find("id")->second);
+            Logger::error("Handler::Update , Record update request has invalid id parameter: " + idIt->second);
             Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid id parameter");
             return;
         }
-        auto j = Json::parse(req.body); // parse ,将字符串转换成对象
-        if (Validator::validateRecordJson(j, res) == false)
+
+        auto j = Json::parse(req.body);
+        if (!Validator::validateRecordJson(j, res))
         {
             return;
         }
@@ -220,8 +215,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是record/update
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -236,7 +230,8 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        if (req.params.find("id") == req.params.end())
+        auto idIt = req.params.find("id");
+        if (idIt == req.params.end())
         {
             Logger::error("Handler::Remove , Record remove request missing id parameter");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing id parameter");
@@ -244,14 +239,14 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         }
 
         int id = 0;
-        if (Validator::parsePositiveInt(req.get_param_value("id"), id) == false)
+        if (!Validator::parsePositiveInt(idIt->second, id))
         {
-            Logger::error("Handler::Remove , Record remove request has invalid id parameter ");
+            Logger::error("Handler::Remove , Record remove request has invalid id parameter");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid id parameter");
             return;
         }
 
-        Logger::info("Handler::Remove , Record remove id param: " + std::to_string(id)  );
+        Logger::info("Handler::Remove , Record remove id param: " + std::to_string(id));
         if (dao.remove(id, userId))
         {
             Logger::info("Handler::Remove , Record remove request processed successfully");
@@ -265,8 +260,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是record/remove
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -288,7 +282,7 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
         Logger::info("Handler::Export , Record export records: " + std::to_string(records.size()));
 
         std::ostringstream oss;
-        oss << "\xEF\xBB\xBF"; // UTF-8 BOM，加在第一行前面
+        oss << "\xEF\xBB\xBF";
         oss << "id,金额,备注,类型,日期,分类\n";
 
         for (const auto &r : records)
@@ -303,12 +297,10 @@ void Handler::Export(RecordDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是record/export
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
-// 用户接口:
 void Handler::Add(UserDao &dao, const Request &req, Response &res)
 {
     try
@@ -334,8 +326,7 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是user/add}
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -364,8 +355,7 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -391,8 +381,7 @@ void Handler::Remove(UserDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
 
@@ -400,18 +389,17 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
 {
     try
     {
-        // 打印日志
         Logger::info("Handler::Login , User Login request received");
 
-        // 处理body参数
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Login , User Login request body is not valid JSON");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
             return;
         }
+
         auto j = Json::parse(req.body);
-        if (Validator::validateUserJson(j, res) == false)
+        if (!Validator::validateUserJson(j, res))
         {
             return;
         }
@@ -419,11 +407,10 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         User user;
         JsonToUser(j, user);
         auto userOptional = dao.query(user.username);
-        auto _password = Crypto::sha256(user.password);
+        auto hashedPassword = Crypto::sha256(user.password);
 
-        if (!userOptional.has_value() || userOptional.value().password != _password)
+        if (!userOptional.has_value() || userOptional.value().password != hashedPassword)
         {
-            // 返回错误信息
             sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid username or password");
             Logger::error("Handler::Login , User Login failed");
         }
@@ -437,10 +424,10 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
-        sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
+
 void Handler::Register(UserDao &dao, const Request &req, Response &res)
 {
     try
@@ -452,8 +439,9 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
             Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
             return;
         }
+
         auto j = Json::parse(req.body);
-        if (Validator::validateUserJson(j, res) == false)
+        if (!Validator::validateUserJson(j, res))
         {
             return;
         }
@@ -477,16 +465,15 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what()); // path是user/register
-        sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
+
 void Handler::Logout(const Request &req, Response &res)
 {
     try
     {
         Logger::info("Handler::Logout , User Logout request received");
-        // 前端传递token,后端验证token,如果token有效,则删除token,返回logout success
         auto token = req.get_header_value("token");
         if (TokenManager::validate_token(token) != -1)
         {
@@ -502,26 +489,31 @@ void Handler::Logout(const Request &req, Response &res)
     }
     catch (const std::exception &e)
     {
-        Logger::error("Location : " + req.path + " , Exception: " + e.what());
-        sendError(res, http_status::internal_error, message_code::InternalError, e.what());
+        Handler::handleInternalError(req, res, e);
     }
 }
+
 int Handler::authCheck(const Request &req, Response &res)
 {
     auto token = req.get_header_value("token");
     auto userId = TokenManager::validate_token(token);
-    if (userId != -1) // 如果token有效,则返回用户id
+    if (userId != -1)
     {
         Logger::info("Handler::authCheck , User authCheck success, userId: " + std::to_string(userId));
         return userId;
     }
-    else
-    {
-        Logger::info("Handler::authCheck , User authCheck failed, token is invalid");
-        Handler::sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid token");
-        return -1;
-    }
+
+    Logger::info("Handler::authCheck , User authCheck failed, token is invalid");
+    Handler::sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid token");
+    return -1;
 }
+
+void Handler::handleInternalError(const Request &req, Response &res, const std::exception &e)
+{
+    Logger::error("Location : " + req.path + " , Exception: " + e.what());
+    Handler::sendError(res, http_status::internal_error, message_code::InternalError, "internal server error");
+}
+
 limit Handler::JsonToLimit(Json &j, limit &l)
 {
     std::string page = j["page"];
@@ -531,6 +523,7 @@ limit Handler::JsonToLimit(Json &j, limit &l)
     l.pageSize = std::stoi(pageSize);
     return l;
 }
+
 void Handler::JsonToRecord(Json &j, Record &r)
 {
     r.amount = j["amount"];
@@ -556,7 +549,6 @@ void Handler::JsonToUser(Json &j, User &u)
     u.password = j["password"];
 }
 
-
 void Handler::sendSuccess(Response &res, const Json &data, const std::string &message)
 {
     Handler::Json result;
@@ -566,6 +558,7 @@ void Handler::sendSuccess(Response &res, const Json &data, const std::string &me
     res.set_content(result.dump(), "application/json");
     res.status = 200;
 }
+
 void Handler::sendError(Response &res, http_status status, message_code code, const std::string &message)
 {
     Handler::Json result;

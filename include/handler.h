@@ -59,6 +59,7 @@ public:
 
 private:
     static int authCheck(const Request &req, Response &res); // 认证检查
+    static void handleInternalError(const Request &req, Response &res, const std::exception &e);
     static limit JsonToLimit(Json &j, limit &l);             // JSON转换为分页参数
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
