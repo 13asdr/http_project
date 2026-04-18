@@ -4,7 +4,7 @@
 #include <mysql.h>
 #include <string>
 #include <sstream>
-#include "Config.h"
+#include "config.h"
 
 
 class DBconnect

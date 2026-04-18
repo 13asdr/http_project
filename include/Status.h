@@ -1,6 +1,6 @@
 #pragma once
 
-enum class message_code // 业务状态码
+enum class BusinessStatus // businessStatusCode
 {
     Success = 0,
     InvalidJSON = 4000,   // 请求JSON格式错误
@@ -10,7 +10,7 @@ enum class message_code // 业务状态码
     Exception = 5001      // 异常错误
 };
 
-enum class http_status // HTTP状态码
+enum class HttpStatus // HTTP状态码
 {
     success = 200,
     bad_request = 400,    // 请求格式或参数有问题

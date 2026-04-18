@@ -4,15 +4,15 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 
-#include "RecordDao.h"
-#include "Status.h"
+#include "record_dao.h"
+#include "status.h"
 
 #include <iostream>
 
 struct ValidationResult
 {
     bool is_valid = true;
-    message_code code = message_code::Success;
+    BusinessStatus code = BusinessStatus::Success;
     std::string message;
 };
 
@@ -23,12 +23,12 @@ public:
     using Json = nlohmann::json;
 
     static ValidationResult parsePositiveInt(const std::string &text, int &value);
-    static ValidationResult validateLimit(const Request &req, limit &l);
+    static ValidationResult validateLimit(const Request &req, Limit &l);
     static ValidationResult validateRecordJson(const Json &j);
     static ValidationResult validateUserJson(const Json &j);
 
 private:
-    static ValidationResult buildResult(bool is_valid, message_code code, const std::string &message)
+    static ValidationResult buildResult(bool is_valid, BusinessStatus code, const std::string &message)
     {
         ValidationResult result;
         result.is_valid = is_valid;

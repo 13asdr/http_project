@@ -18,13 +18,13 @@ set(MYSQL_LIB_DIR "C:/Program Files/MySQL/MySQL Server 8.0/lib")
 # 可执行文件
 add_executable(AccountingServer
     AccountingServer.cpp
-    src/RecordDao.cpp
-    src/DBconnect.cpp
+    src/record_dao.cpp
+    src/db_connect.cpp
     src/handler.cpp
-    src/Config.cpp
-    src/UserDao.cpp
-    src/TokenManager.cpp
-    src/Validator.cpp
+    src/config.cpp
+    src/user_dao.cpp
+    src/token_manager.cpp
+    src/validator.cpp
     third_party/inih/INIReader.cpp
     third_party/inih/ini.c
 )

@@ -8,8 +8,8 @@
 #include <map>
 #include <optional>
 
-#include "DBconnect.h"
-#include "Crypto.h"
+#include "db_connect.h"
+#include "crypto.h"
 
 struct User
 {

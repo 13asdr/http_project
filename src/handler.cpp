@@ -1,5 +1,5 @@
 #include "handler.h"
-#include "Logger.h"
+#include "logger.h"
 
 void Handler::Add(RecordDao &dao, const Request &req, Response &res)
 {
@@ -10,7 +10,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Add , RecordAdd request body is not valid JSON");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidJSON, "invalid JSON");
             return;
         }
 
@@ -19,7 +19,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Add , RecordAdd request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -41,7 +41,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         else
         {
             Logger::error("Handler::Add , RecordAdd request failed");
-            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "Failed to add record");
+            Handler::sendError(res, HttpStatus::internal_error, BusinessStatus::InternalError, "Failed to add record");
         }
     }
     catch (const std::exception &e)
@@ -62,12 +62,12 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        limit l;
+        Limit l;
         ValidationResult vr = Validator::validateLimit(req, l);
         if (!vr.is_valid)
         {
             Logger::error("Handler::List , Record list request has invalid parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -138,12 +138,12 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        limit l;
+        Limit l;
         ValidationResult vr = Validator::validateLimit(req, l);
         if (!vr.is_valid)
         {
             Logger::error("Handler::Filter , Record filter request has invalid parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -189,7 +189,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         if (idIt == req.params.end())
         {
             Logger::error("Handler::Update , Record update request missing id parameter");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing id parameter");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "missing id parameter");
             return;
         }
 
@@ -198,7 +198,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Update , Record update request has invalid id parameter: " + idIt->second);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -207,7 +207,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Update , Record update request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -223,7 +223,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         else
         {
             Logger::info("Handler::Update , Record update request processed with failure");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "failed to update record");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "failed to update record");
         }
     }
     catch (const std::exception &e)
@@ -247,7 +247,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         if (idIt == req.params.end())
         {
             Logger::error("Handler::Remove , Record remove request missing id parameter");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing id parameter");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "missing id parameter");
             return;
         }
 
@@ -256,7 +256,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Remove , Record remove request has invalid id parameter");
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -269,7 +269,7 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         else
         {
             Logger::info("Handler::Remove , Record remove request processed with failure");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "failed to delete record");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "failed to delete record");
         }
     }
     catch (const std::exception &e)
@@ -323,7 +323,7 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Add , User Add request body is not valid JSON");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidJSON, "invalid JSON");
             return;
         }
 
@@ -332,7 +332,7 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Add , User Add request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -343,7 +343,7 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
         if (!dao.add(user))
         {
             Logger::error("Handler::Add , User Add request processed failed");
-            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to add user");
+            Handler::sendError(res, HttpStatus::internal_error, BusinessStatus::InternalError, "failed to add user");
             return;
         }
         Logger::info("Handler::Add , User Add request processed successfully");
@@ -363,7 +363,7 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Update , User Update request body is not valid JSON");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidJSON, "invalid JSON");
             return;
         }
         auto j = Json::parse(req.body);
@@ -371,7 +371,7 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Update , User Update request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -382,7 +382,7 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
         if (!dao.update(user))
         {
             Logger::error("Handler::Update , User Update request processed failed");
-            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to update user");
+            Handler::sendError(res, HttpStatus::internal_error, BusinessStatus::InternalError, "failed to update user");
             return;
         }
         Logger::info("Handler::Update , User Update request processed successfully");
@@ -402,7 +402,7 @@ void Handler::Remove(UserDao &dao, const Request &req, Response &res)
         if (req.params.find("username") == req.params.end())
         {
             Logger::error("Handler::Remove , User Remove request missing username parameter");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing username parameter");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "missing username parameter");
             return;
         }
 
@@ -410,14 +410,14 @@ void Handler::Remove(UserDao &dao, const Request &req, Response &res)
         if (username.empty())
         {
             Logger::error("Handler::Remove , User Remove request has empty username parameter");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid username parameter");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "invalid username parameter");
             return;
         }
 
         if (!dao.remove(username))
         {
             Logger::error("Handler::Remove , User Remove request processed failed");
-            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to delete user");
+            Handler::sendError(res, HttpStatus::internal_error, BusinessStatus::InternalError, "failed to delete user");
             return;
         }
         Logger::info("Handler::Remove , User Remove request processed successfully");
@@ -438,7 +438,7 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Login , User Login request body is not valid JSON");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidJSON, "invalid JSON");
             return;
         }
 
@@ -447,7 +447,7 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Login , User Login request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -458,7 +458,7 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
 
         if (!userOptional.has_value() || userOptional.value().password != hashedPassword)
         {
-            sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid username or password");
+            sendError(res, HttpStatus::unauthorized, BusinessStatus::Unauthorized, "invalid username or password");
             Logger::error("Handler::Login , User Login failed");
             return;
         }
@@ -481,7 +481,7 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Register , User Register request body is not valid JSON");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidJSON, "invalid JSON");
             return;
         }
 
@@ -490,7 +490,7 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         if (!vr.is_valid)
         {
             Logger::error("Handler::Register , User Register request has invalid JSON parameters: " + vr.message);
-            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
+            Handler::sendError(res, HttpStatus::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -501,7 +501,7 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         if (userOptional.has_value())
         {
             Logger::error("Handler::Register , User Register failed");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "username already exists");
+            Handler::sendError(res, HttpStatus::bad_request, BusinessStatus::InvalidPARAM, "username already exists");
             return;
         }
         user.password = Crypto::sha256(user.password);
@@ -530,7 +530,7 @@ void Handler::Logout(const Request &req, Response &res)
         else
         {
             Logger::info("Handler::Logout , User Logout failed");
-            Handler::sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid token");
+            Handler::sendError(res, HttpStatus::unauthorized, BusinessStatus::Unauthorized, "invalid token");
         }
     }
     catch (const std::exception &e)
@@ -550,24 +550,14 @@ int Handler::authCheck(const Request &req, Response &res)
     }
 
     Logger::info("Handler::authCheck , User authCheck failed, token is invalid");
-    Handler::sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid token");
+    Handler::sendError(res, HttpStatus::unauthorized, BusinessStatus::Unauthorized, "invalid token");
     return -1;
 }
 
 void Handler::handleInternalError(const Request &req, Response &res, const std::exception &e)
 {
     Logger::error("Location : " + req.path + " , Exception: " + e.what());
-    Handler::sendError(res, http_status::internal_error, message_code::InternalError, "internal server error");
-}
-
-limit Handler::JsonToLimit(Json &j, limit &l)
-{
-    std::string page = j["page"];
-    std::string pageSize = j["pageSize"];
-
-    l.page = std::stoi(page);
-    l.pageSize = std::stoi(pageSize);
-    return l;
+    Handler::sendError(res, HttpStatus::internal_error, BusinessStatus::InternalError, "internal server error");
 }
 
 void Handler::JsonToRecord(Json &j, Record &r)
@@ -605,7 +595,7 @@ void Handler::sendSuccess(Response &res, const Json &data, const std::string &me
     res.status = 200;
 }
 
-void Handler::sendError(Response &res, http_status status, message_code code, const std::string &message)
+void Handler::sendError(Response &res, HttpStatus status, BusinessStatus code, const std::string &message)
 {
     Handler::Json result;
     result["code"] = static_cast<int>(code);

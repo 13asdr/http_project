@@ -1,10 +1,10 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
-#include "RecordDao.h"
+#include "record_dao.h"
 #include "handler.h"
-#include "Config.h"
-#include "Logger.h"
-#include "UserDao.h"
+#include "config.h"
+#include "logger.h"
+#include "user_dao.h"
 
 #include <filesystem>
 #include <iostream>

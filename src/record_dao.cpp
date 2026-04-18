@@ -1,4 +1,4 @@
-#include "RecordDao.h"
+#include "record_dao.h"
 #include <iostream>
 
 RecordDao::RecordDao(DBconnect &db) : db(db) {}
@@ -20,7 +20,7 @@ bool RecordDao::add(const Record &record)
     return db.execute(sql.str());
 }
 
-std::vector<Record> RecordDao::list_order_by_timeAndId(int user_id, limit l)
+std::vector<Record> RecordDao::list_order_by_timeAndId(int user_id, Limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
@@ -69,7 +69,7 @@ std::vector<Record> RecordDao::list_order_by_id(int user_id)
     return result;
 }
 
-std::vector<Record> RecordDao::listByMonth(const std::string &month_type, int user_id, limit l)
+std::vector<Record> RecordDao::listByMonth(const std::string &month_type, int user_id, Limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
@@ -109,7 +109,7 @@ std::map<std::string, double> RecordDao::statByCategory(int user_id)
     return result;
 }
 
-std::vector<Record> RecordDao::search(const std::string &keyword, int user_id, limit l)
+std::vector<Record> RecordDao::search(const std::string &keyword, int user_id, Limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
@@ -134,12 +134,12 @@ std::vector<Record> RecordDao::search(const std::string &keyword, int user_id, l
     return result;
 }
 
-std::vector<Record> RecordDao::filter(const std::string &keyword, const std::string &month_type, int user_id, limit l)
+std::vector<Record> RecordDao::filter(const std::string &keyword, const std::string &month_type, int user_id, Limit l)
 {
     std::vector<Record> result;
     std::ostringstream sql;
     int offset = (l.page - 1) * l.pageSize;
-    int limit = l.pageSize;
+    int Limit = l.pageSize;
 
     sql << "SELECT id,amount, note, type, time, category ,user_id FROM records "
         << "where 1=1 ";
@@ -152,7 +152,7 @@ std::vector<Record> RecordDao::filter(const std::string &keyword, const std::str
     {
         sql << "AND DATE_FORMAT(time, '%Y-%m') = '" << month_type << "' ";
     }
-    sql << "AND user_id = " << user_id << " ORDER BY time DESC, id DESC LIMIT " << limit << " OFFSET " << offset;
+    sql << "AND user_id = " << user_id << " ORDER BY time DESC, id DESC LIMIT " << Limit << " OFFSET " << offset;
 
     MYSQL_RES *res = db.query(sql.str());
     if (!res)

@@ -1,5 +1,5 @@
 
-#include "DBconnect.h"
+#include "db_connect.h"
 
 DBconnect::DBconnect(const DBconfig &config)
 {

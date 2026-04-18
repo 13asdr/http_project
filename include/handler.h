@@ -3,12 +3,12 @@
 
 #include "httplib.h"
 #include "nlohmann/json.hpp"
-#include "RecordDao.h"
-#include "UserDao.h"
-#include "TokenManager.h"
-#include "Validator.h"
-#include "Logger.h"
-#include "Status.h"
+#include "record_dao.h"
+#include "user_dao.h"
+#include "token_manager.h"
+#include "validator.h"
+#include "logger.h"
+#include "status.h"
 
 #include <iostream>
 
@@ -40,12 +40,11 @@ public:
 
     // 统一的成功响应函数
     static void sendSuccess(Response &res, const Json &data, const std::string &message);
-    static void sendError(Response &res, http_status status, message_code code, const std::string &message);
+    static void sendError(Response &res, HttpStatus status, BusinessStatus code, const std::string &message);
 
 private:
     static int authCheck(const Request &req, Response &res); // 认证检查
     static void handleInternalError(const Request &req, Response &res, const std::exception &e);
-    static limit JsonToLimit(Json &j, limit &l); // JSON转换为分页参数
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
     static void JsonToUser(Json &j, User &u);
