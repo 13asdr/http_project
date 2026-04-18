@@ -306,23 +306,30 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
     try
     {
         Logger::info("Handler::Add , User Add request received");
+        if (!Json::accept(req.body))
+        {
+            Logger::error("Handler::Add , User Add request body is not valid JSON");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            return;
+        }
+
         auto j = Json::parse(req.body);
+        if (!Validator::validateUserJson(j, res))
+        {
+            return;
+        }
         User user;
         JsonToUser(j, user);
         user.password = Crypto::sha256(user.password);
 
-        Json result;
-        if (dao.add(user))
+        if (!dao.add(user))
         {
-            result["status"] = "ok";
-            result["message"] = "user added successfully";
+            Logger::error("Handler::Add , User Add request processed failed");
+            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to add user");
+            return;
         }
-        else
-        {
-            result["status"] = "error";
-            result["message"] = "user add failed";
-        }
-        res.set_content(result.dump(), "application/json");
+        Logger::info("Handler::Add , User Add request processed successfully");
+        Handler::sendSuccess(res, Json::object(), "user added successfully");
     }
     catch (const std::exception &e)
     {
@@ -335,23 +342,29 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
     try
     {
         Logger::info("Handler::Update , User Update request received");
+        if (!Json::accept(req.body))
+        {
+            Logger::error("Handler::Update , User Update request body is not valid JSON");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON");
+            return;
+        }
         auto j = Json::parse(req.body);
+        if (!Validator::validateUserJson(j, res))
+        {
+            return;
+        }
         User user;
         JsonToUser(j, user);
         user.password = Crypto::sha256(user.password);
 
-        Json result;
-        if (dao.update(user))
+        if (!dao.update(user))
         {
-            result["status"] = "ok";
-            result["message"] = "user updated successfully";
+            Logger::error("Handler::Update , User Update request processed failed");
+            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to update user");
+            return;
         }
-        else
-        {
-            result["status"] = "error";
-            result["message"] = "user update failed";
-        }
-        res.set_content(result.dump(), "application/json");
+        Logger::info("Handler::Update , User Update request processed successfully");
+        Handler::sendSuccess(res, Json::object(), "user updated successfully");
     }
     catch (const std::exception &e)
     {
@@ -363,21 +376,30 @@ void Handler::Remove(UserDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept User Remove request");
-        std::string username = req.get_param_value("username");
+        Logger::info("Handler::Remove , User Remove request received");
+        if (req.params.find("username") == req.params.end())
+        {
+            Logger::error("Handler::Remove , User Remove request missing username parameter");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing username parameter");
+            return;
+        }
 
-        Json result;
-        if (dao.remove(username))
+        std::string username = req.get_param_value("username");
+        if (username.empty())
         {
-            result["status"] = "ok";
-            result["message"] = "user deleted successfully";
+            Logger::error("Handler::Remove , User Remove request has empty username parameter");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid username parameter");
+            return;
         }
-        else
+
+        if (!dao.remove(username))
         {
-            result["status"] = "error";
-            result["message"] = "delete failed";
+            Logger::error("Handler::Remove , User Remove request processed failed");
+            Handler::sendError(res, http_status::internal_error, message_code::InternalError, "failed to delete user");
+            return;
         }
-        res.set_content(result.dump(), "application/json");
+        Logger::info("Handler::Remove , User Remove request processed successfully");
+        Handler::sendSuccess(res, Json::object(), "user deleted successfully");
     }
     catch (const std::exception &e)
     {
@@ -413,14 +435,12 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         {
             sendError(res, http_status::unauthorized, message_code::Unauthorized, "invalid username or password");
             Logger::error("Handler::Login , User Login failed");
+            return;
         }
-        else
-        {
-            Json data;
-            data["token"] = TokenManager::generate_token(userOptional.value().id);
-            sendSuccess(res, data, "login success");
-            Logger::info("Handler::Login , User Login success");
-        }
+        Json data;
+        data["token"] = TokenManager::generate_token(userOptional.value().id);
+        sendSuccess(res, data, "login success");
+        Logger::info("Handler::Login , User Login success");
     }
     catch (const std::exception &e)
     {
@@ -454,14 +474,12 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         {
             Logger::error("Handler::Register , User Register failed");
             Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "username already exists");
+            return;
         }
-        else
-        {
-            user.password = Crypto::sha256(user.password);
-            dao.add(user);
-            Logger::info("Handler::Register , User Register success");
-            Handler::sendSuccess(res, Json::object(), "user registered successfully");
-        }
+        user.password = Crypto::sha256(user.password);
+        dao.add(user);
+        Logger::info("Handler::Register , User Register success");
+        Handler::sendSuccess(res, Json::object(), "user registered successfully");
     }
     catch (const std::exception &e)
     {

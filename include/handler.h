@@ -13,10 +13,10 @@
 
 enum class message_code // 业务错误码
 {
-    InvalidJSON = 4000,
-    InvalidPARAM = 4001,
-    Unauthorized = 4010,
-    InternalError = 5000,
+    InvalidJSON = 4000,   // 请求JSON格式错误
+    InvalidPARAM = 4001,  // 请求参数有问题，比如分页参数不合法，或者记录的金额为负数等
+    Unauthorized = 4010,  // 没登录，或 token 无效
+    InternalError = 5000, // 服务器内部错误
 };
 
 enum class http_status // HTTP状态码
@@ -60,7 +60,7 @@ public:
 private:
     static int authCheck(const Request &req, Response &res); // 认证检查
     static void handleInternalError(const Request &req, Response &res, const std::exception &e);
-    static limit JsonToLimit(Json &j, limit &l);             // JSON转换为分页参数
+    static limit JsonToLimit(Json &j, limit &l); // JSON转换为分页参数
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
     static void JsonToUser(Json &j, User &u);
