@@ -80,13 +80,5 @@ int main()
     bool ok = server.listen(config.server.host.c_str(), config.server.port); // ctrl+c stop
     Logger::info("listen return: " + std::to_string(ok));
 
-    // 暂时删除:
-    //  按月份查询 GET /record/listByMonth?month=2026-04
-    //  server.Get("/record/listByMonth", [&dao](const httplib::Request &req, httplib::Response &res)
-    //             { Handler::ListByMonth(dao, req, res); });
-    //  // 模糊查询备注关键词 GET /record/search?keyword=吃
-    //  server.Get("/record/search", [&dao](const httplib::Request &req, httplib::Response &res)
-    //             { Handler::Search(dao, req, res); });
-
     return 0;
 }

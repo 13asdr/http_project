@@ -236,10 +236,22 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
             return;
         }
 
-        std::string idStr = req.get_param_value("id");
-        Logger::info("Handler::Remove , Record remove id param: " + idStr);
-        int id = std::stoi(idStr);
+        if (req.params.find("id") == req.params.end())
+        {
+            Logger::error("Handler::Remove , Record remove request missing id parameter");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "missing id parameter");
+            return;
+        }
 
+        int id = 0;
+        if (Validator::parsePositiveInt(req.get_param_value("id"), id) == false)
+        {
+            Logger::error("Handler::Remove , Record remove request has invalid id parameter ");
+            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid id parameter");
+            return;
+        }
+
+        Logger::info("Handler::Remove , Record remove id param: " + std::to_string(id)  );
         if (dao.remove(id, userId))
         {
             Logger::info("Handler::Remove , Record remove request processed successfully");
@@ -399,7 +411,10 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
             return;
         }
         auto j = Json::parse(req.body);
-        Validator::validateUserJson(j, res);
+        if (Validator::validateUserJson(j, res) == false)
+        {
+            return;
+        }
 
         User user;
         JsonToUser(j, user);
@@ -438,7 +453,10 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
             return;
         }
         auto j = Json::parse(req.body);
-        Validator::validateUserJson(j, res);
+        if (Validator::validateUserJson(j, res) == false)
+        {
+            return;
+        }
 
         User user;
         JsonToUser(j, user);
@@ -538,11 +556,6 @@ void Handler::JsonToUser(Json &j, User &u)
     u.password = j["password"];
 }
 
-// void Handler::UserToJson(const User &u, Json &j)
-// {
-//     j["username"] = u.username;
-//     j["password"] = u.password;
-// }
 
 void Handler::sendSuccess(Response &res, const Json &data, const std::string &message)
 {
@@ -562,66 +575,3 @@ void Handler::sendError(Response &res, http_status status, message_code code, co
     res.set_content(result.dump(), "application/json");
     res.status = static_cast<int>(status);
 }
-
-// // 暂时不需要了，后续如果需要再添加日志
-// void Handler::ListByMonth(RecordDao &dao, const Request &req, Response &res)
-// {
-//     try
-//     {
-//         Logger::info("Handler::ListByMonth , Record listByMonth request received");
-
-//         // 获取user_id
-//         auto userId = authCheck(req, res);
-//         if (userId == -1)
-//         {
-//             return;
-//         }
-
-//         std::string month = req.get_param_value("month");
-//         limit l = Handler::getLimit(req);
-//         Json result = Json::array();
-
-//         for (auto &r : dao.listByMonth(month, userId, l))
-//         {
-//             Json item;
-//             RecordToJson(r, item);
-//             result.push_back(item);
-//         }
-//         res.set_content(result.dump(), "application/json");
-//     }
-//     catch (const std::exception &e)
-//     {
-//         Logger::error("Location : " + req.path + " , Exception: " + e.what());
-//         Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
-//     }
-// }
-// void Handler::Search(RecordDao &dao, const Request &req, Response &res)
-// {
-//     try
-//     {
-//         Logger::info("accept Record search request");
-//         auto userId = authCheck(req, res);
-//         if (userId == -1)
-//         {
-//             return;
-//         }
-
-//         limit l = Handler::getLimit(req);
-//         std::string keyword = req.get_param_value("keyword");
-//         // http://localhost:8080/record/search?keyword=吃 param是keyword , value是吃 ,search是调用函数
-//         Json result = Json::array();
-
-//         for (auto &r : dao.search(keyword, userId, l))
-//         {
-//             Json item;
-//             RecordToJson(r, item);
-//             result.push_back(item);
-//         }
-//         res.set_content(result.dump(), "application/json");
-//     }
-//     catch (const std::exception &e)
-//     {
-//         Logger::error("Location : " + req.path + " , Exception: " + e.what());
-//         Handler::sendError(res, http_status::internal_error, message_code::InternalError, e.what());
-//     }
-// }

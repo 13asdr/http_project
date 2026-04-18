@@ -20,7 +20,7 @@ bool Validator::validateLimit(const Request &req, Response &res, limit &l) //
     {
         Logger::error("Validator::validateLimit , pagination parameters are missing");
         Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid pagination parameters");
-        return true;
+        return false;
     }
 
     std::string pageStr = req.get_param_value("page");
@@ -59,7 +59,7 @@ bool Validator::validateRecordJson(const Json &j, Response &res)
 {
     try
     {
-        if (j["amount"].is_number() && (!j["note"].is_null() && !j["type"].is_null() && !j["category"].is_null() && !j["time"].is_null() ) && (!j["note"].empty() && !j["type"].empty() && !j["category"].empty() && !j["time"].empty()))
+        if (j["amount"].is_number() && (!j["note"].is_null() && !j["type"].is_null() && !j["category"].is_null() && !j["time"].is_null()) && (!j["note"].empty() && !j["type"].empty() && !j["category"].empty() && !j["time"].empty()))
         {
             Logger::info("Validator::validateRecordJson , record JSON parameters are valid");
             return true;

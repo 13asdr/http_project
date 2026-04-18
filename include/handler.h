@@ -53,10 +53,6 @@ public:
     static void Register(UserDao &dao, const Request &req, Response &res);
     static void Logout(const Request &req, Response &res);
 
-    // // 暂时删除的函数:
-    // static void ListByMonth(RecordDao &dao, const Request &req, Response &res); // 按月份查询 // 暂时删除 , 不支持分页
-    // static void Search(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词   //暂时删除 , 不支持分页
-
     // 统一的成功响应函数
     static void sendSuccess(Response &res, const Json &data, const std::string &message);
     static void sendError(Response &res, http_status status, message_code code, const std::string &message);
@@ -67,7 +63,6 @@ private:
     static void JsonToRecord(Json &j, Record &r);
     static void RecordToJson(const Record &r, Json &j);
     static void JsonToUser(Json &j, User &u);
-    // static void UserToJson(const User &u, Json &j);
 };
 
 #endif
