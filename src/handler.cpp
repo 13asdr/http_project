@@ -12,7 +12,7 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Add , RecordAdd request body is not valid JSON");
-            Handler::sendError(res, 4010, message_code::InvalidJSON, "invalid JSON");
+            Handler::sendError(res, 400, message_code::InvalidJSON, "invalid JSON");
             return;
         }
         auto j = Json::parse(req.body);
@@ -31,12 +31,12 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         if (dao.add(r))
         {
             Logger::info("Handler::Add , RecordAdd request processed successfully");
-            Handler::sendSuccess(res, "record added successfully");
+            Handler::sendSuccess(res, Json::object(), "record added successfully");
         }
         else
         {
             Logger::error("Handler::Add , RecordAdd request failed");
-            Handler::sendError(res, 4010, message_code::InternalError, "Failed to add record");
+            Handler::sendError(res, 500, message_code::InternalError, "Failed to add record");
         }
     }
     catch (const std::exception &e)
@@ -181,12 +181,12 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         if (dao.update(id, r, userId))
         {
             Logger::info("Handler::Update , Record update request processed successfully");
-            Handler::sendSuccess(res, "record updated successfully");
+            Handler::sendSuccess(res, Json::object(), "record updated successfully");
         }
         else
         {
             Logger::info("Handler::Update , Record update request processed with failure");
-            Handler::sendError(res, 4010, message_code::InvalidPARAM, "failed to update record");
+            Handler::sendError(res, 400, message_code::InvalidPARAM, "failed to update record");
         }
     }
     catch (const std::exception &e)
@@ -214,12 +214,12 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         if (dao.remove(id, userId))
         {
             Logger::info("Handler::Remove , Record remove request processed successfully");
-            Handler::sendSuccess(res, "record deleted successfully");
+            Handler::sendSuccess(res, Json::object(), "record deleted successfully");
         }
         else
         {
             Logger::info("Handler::Remove , Record remove request processed with failure");
-            Handler::sendError(res, 4010, message_code::InvalidPARAM, "failed to delete record");
+            Handler::sendError(res, 400, message_code::InvalidPARAM, "failed to delete record");
         }
     }
     catch (const std::exception &e)
@@ -366,8 +366,7 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Login , User Login request body is not valid JSON");
-            res.status = 4010;
-            res.set_content("invalid JSON", "text/plain");
+            Handler::sendError(res, 400, message_code::InvalidJSON, "invalid JSON");
             return;
         }
         auto j = Json::parse(req.body);
@@ -385,8 +384,9 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         }
         else
         {
-            std::string token = "{\"token\": \"" + TokenManager::generate_token(userOptional.value().id) + "\"}";
-            sendSuccess(res, Json::parse(token), "login success");
+            Json data;
+            data["token"] = TokenManager::generate_token(userOptional.value().id);
+            sendSuccess(res, data, "login success");
             Logger::info("Handler::Login , User Login success");
         }
     }
@@ -404,8 +404,7 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         if (!Json::accept(req.body))
         {
             Logger::error("Handler::Register , User Register request body is not valid JSON");
-            res.status = 4010;
-            res.set_content("invalid JSON", "text/plain");
+            Handler::sendError(res, 400, message_code::InvalidJSON, "invalid JSON");
             return;
         }
         auto j = Json::parse(req.body);
@@ -413,23 +412,19 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         User user;
         JsonToUser(j, user);
         auto userOptional = dao.query(user.username);
-        Json result;
 
         if (userOptional.has_value())
         {
-            result["status"] = "error";
-            result["message"] = "username already exists";
             Logger::error("Handler::Register , User Register failed");
-        }
+            Handler::sendError(res, 400, message_code::InvalidPARAM, "username already exists");
+                }
         else
         {
             user.password = Crypto::sha256(user.password);
             dao.add(user);
-            result["status"] = "ok";
-            result["message"] = "register success , please login";
             Logger::info("Handler::Register , User Register success");
+            Handler::sendSuccess(res, Json::object(), "user registered successfully");
         }
-        res.set_content(result.dump(), "application/json");
     }
     catch (const std::exception &e)
     {
@@ -444,21 +439,17 @@ void Handler::Logout(const Request &req, Response &res)
         Logger::info("Handler::Logout , User Logout request received");
         // 前端传递token,后端验证token,如果token有效,则删除token,返回logout success
         auto token = req.get_header_value("token");
-        Json result;
         if (TokenManager::validate_token(token) != -1)
         {
             TokenManager::remove_token(token);
-            result["status"] = "ok";
-            result["message"] = "logout success";
             Logger::info("Handler::Logout , User Logout success");
+            Handler::sendSuccess(res, Json::object(), "logout success");
         }
         else
         {
-            result["status"] = "error";
-            result["message"] = "logout failed , token is invalid";
-            Logger::info("User Logout failed");
+            Logger::info("Handler::Logout , User Logout failed");
+            Handler::sendError(res, 401, message_code::Unauthorized, "invalid token");
         }
-        res.set_content(result.dump(), "application/json");
     }
     catch (const std::exception &e)
     {
@@ -478,7 +469,7 @@ int Handler::authCheck(const Request &req, Response &res)
     else
     {
         Logger::info("Handler::authCheck , User authCheck failed, token is invalid");
-        Handler::sendError(res, 4010, message_code::Unauthorized, "invalid token");
+        Handler::sendError(res, 401, message_code::Unauthorized, "invalid token");
         return -1;
     }
 }
@@ -529,19 +520,21 @@ limit Handler::getLimit(const Request &req)
     return {_page, _pageSize};
 }
 
-void Handler::sendSuccess(Response &res, const Json &data = Json::object(), const std::string &message = "success")
+void Handler::sendSuccess(Response &res, const Json &data, const std::string &message)
 {
     Handler::Json result;
-    result["code"] = "0";
+    result["code"] = 0;
     result["message"] = message;
     result["data"] = data;
     res.set_content(result.dump(), "application/json");
+    res.status = 200;
 }
 void Handler::sendError(Response &res, int httpStatus, message_code code, const std::string &message)
 {
     Handler::Json result;
-    result["code"] = std::to_string(static_cast<int>(code));
+    result["code"] = static_cast<int>(code);
     result["message"] = message;
+    result["data"] = nullptr;
     res.set_content(result.dump(), "application/json");
     res.status = httpStatus;
 }

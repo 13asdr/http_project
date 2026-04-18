@@ -59,7 +59,7 @@ private:
     static limit getLimit(const Request &req);
 
     // 统一的成功响应函数
-    static void sendSuccess(Response &res, const Json &data = Json::object(), const std::string &message = "success");
+    static void sendSuccess(Response &res, const Json &data, const std::string &message);
     static void sendError(Response &res, int httpStatus, message_code code, const std::string &message);
 };
 
