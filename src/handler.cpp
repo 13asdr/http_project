@@ -15,8 +15,11 @@ void Handler::Add(RecordDao &dao, const Request &req, Response &res)
         }
 
         auto j = Json::parse(req.body);
-        if (!Validator::validateRecordJson(j, res))
+        ValidationResult vr = Validator::validateRecordJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Add , RecordAdd request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -60,8 +63,11 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
         }
 
         limit l;
-        if (!Validator::validateLimit(req, res, l))
+        ValidationResult vr = Validator::validateLimit(req, l);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::List , Record list request has invalid parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -133,8 +139,11 @@ void Handler::Filter(RecordDao &dao, const Request &req, Response &res)
         }
 
         limit l;
-        if (!Validator::validateLimit(req, res, l))
+        ValidationResult vr = Validator::validateLimit(req, l);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Filter , Record filter request has invalid parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -185,16 +194,20 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
         }
 
         int id = 0;
-        if (!Validator::parsePositiveInt(idIt->second, id))
+        ValidationResult vr = Validator::parsePositiveInt(idIt->second, id);
+        if (!vr.is_valid)
         {
             Logger::error("Handler::Update , Record update request has invalid id parameter: " + idIt->second);
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid id parameter");
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
         auto j = Json::parse(req.body);
-        if (!Validator::validateRecordJson(j, res))
+        vr = Validator::validateRecordJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Update , Record update request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -239,10 +252,11 @@ void Handler::Remove(RecordDao &dao, const Request &req, Response &res)
         }
 
         int id = 0;
-        if (!Validator::parsePositiveInt(idIt->second, id))
+        ValidationResult vr = Validator::parsePositiveInt(idIt->second, id);
+        if (!vr.is_valid)
         {
             Logger::error("Handler::Remove , Record remove request has invalid id parameter");
-            Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid id parameter");
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -314,10 +328,14 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
         }
 
         auto j = Json::parse(req.body);
-        if (!Validator::validateUserJson(j, res))
+        ValidationResult vr = Validator::validateUserJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Add , User Add request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
+
         User user;
         JsonToUser(j, user);
         user.password = Crypto::sha256(user.password);
@@ -349,10 +367,14 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
             return;
         }
         auto j = Json::parse(req.body);
-        if (!Validator::validateUserJson(j, res))
+        ValidationResult vr = Validator::validateUserJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Update , User Update request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
+
         User user;
         JsonToUser(j, user);
         user.password = Crypto::sha256(user.password);
@@ -421,8 +443,11 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         }
 
         auto j = Json::parse(req.body);
-        if (!Validator::validateUserJson(j, res))
+        ValidationResult vr = Validator::validateUserJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Login , User Login request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 
@@ -461,8 +486,11 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         }
 
         auto j = Json::parse(req.body);
-        if (!Validator::validateUserJson(j, res))
+        ValidationResult vr = Validator::validateUserJson(j);
+        if (!vr.is_valid)
         {
+            Logger::error("Handler::Register , User Register request has invalid JSON parameters: " + vr.message);
+            Handler::sendError(res, http_status::bad_request, vr.code, vr.message);
             return;
         }
 

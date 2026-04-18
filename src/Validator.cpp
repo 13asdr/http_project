@@ -1,105 +1,120 @@
 #include "Validator.h"
 
-bool Validator::parsePositiveInt(const std::string &text, int &value)
+ValidationResult Validator::parsePositiveInt(const std::string &text, int &value)
 {
     try
     {
         value = std::stoi(text);
-        return value >= 1;
+        if (value <= 0)
+        {
+            return Validator::buildResult(false, message_code::InvalidPARAM, "invalid positive integer");
+        }
+        return Validator::buildResult(true, message_code::Success, "");
     }
     catch (const std::exception &e)
     {
-        Logger::error("Validator::parsePositiveInt , Exception: " + std::string(e.what()) + " , input : " + text);
-        return false;
+        (void)e;
+        return Validator::buildResult(false, message_code::InvalidPARAM, "invalid positive integer");
     }
 }
-bool Validator::validateLimit(const Request &req, Response &res, limit &l) //
-{
 
+ValidationResult Validator::validateLimit(const Request &req, limit &l)
+{
     if (!req.has_param("page") || !req.has_param("pageSize"))
     {
-        Logger::error("Validator::validateLimit , pagination parameters are missing");
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid pagination parameters");
-        return false;
+        return Validator::buildResult(false, message_code::InvalidPARAM, "missing pagination parameters");
     }
 
     std::string pageStr = req.get_param_value("page");
     std::string pageSizeStr = req.get_param_value("pageSize");
     if (pageStr.empty() || pageSizeStr.empty())
     {
-        Logger::error("Validator::validateLimit , pagination parameters are empty");
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid pagination parameters");
-        return false;
+        return Validator::buildResult(false, message_code::InvalidPARAM, "empty pagination parameters");
     }
 
-    int _page = 0;
-    int _pageSize = 0;
-    if (Validator::parsePositiveInt(pageStr, _page) == false || Validator::parsePositiveInt(pageSizeStr, _pageSize) == false)
+    int page = 0;
+    int pageSize = 0;
+    if (!Validator::parsePositiveInt(pageStr, page).is_valid || !Validator::parsePositiveInt(pageSizeStr, pageSize).is_valid)
     {
-        Logger::error("Validator::validateLimit , pagination parameters are not positive integers");
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid pagination parameters");
-        return false;
+        return Validator::buildResult(false, message_code::InvalidPARAM, "pagination parameters must be positive integers");
     }
 
-    if (_page >= 1 && (_pageSize >= 1 && _pageSize <= 100))
+    if (pageSize > 100)
     {
-        l = {_page, _pageSize};
-        Logger::info("Validator::validateLimit , pagination parameters are valid");
-        return true;
+        return Validator::buildResult(false, message_code::InvalidPARAM, "pageSize must be between 1 and 100");
     }
-    else
-    {
-        Logger::error("Validator::validateLimit , invalid pagination parameters: page=" + std::to_string(_page) + ", pageSize=" + std::to_string(_pageSize));
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid pagination parameters");
-        return false;
-    }
+
+    l = {page, pageSize};
+    return Validator::buildResult(true, message_code::Success, "");
 }
 
-bool Validator::validateRecordJson(const Json &j, Response &res)
+ValidationResult Validator::validateRecordJson(const Json &j)
 {
+    if (!j.is_object())
+    {
+        return Validator::buildResult(false, message_code::InvalidJSON, "invalid record JSON");
+    }
+
     try
     {
-        if (j["amount"].is_number() && (!j["note"].is_null() && !j["type"].is_null() && !j["category"].is_null() && !j["time"].is_null()) && (!j["note"].empty() && !j["type"].empty() && !j["category"].empty() && !j["time"].empty()))
+        if (!j.contains("amount") || !j["amount"].is_number())
         {
-            Logger::info("Validator::validateRecordJson , record JSON parameters are valid");
-            return true;
+            return Validator::buildResult(false, message_code::InvalidPARAM, "amount must be a number");
         }
-        Logger::error("Validator::validateRecordJson , invalid record JSON parameters");
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid record JSON parameters");
-        return false;
+
+        const char *requiredFields[] = {"note", "type", "category", "time"};
+        for (const char *field : requiredFields)
+        {
+            if (!j.contains(field) || !j[field].is_string() || j[field].get<std::string>().empty())
+            {
+                return Validator::buildResult(false, message_code::InvalidPARAM, std::string(field) + " is required");
+            }
+        }
+
+        return Validator::buildResult(true, message_code::Success, "");
     }
     catch (const std::exception &e)
     {
-        Logger::error("Validator::validateRecordJson , Exception: " + std::string(e.what()));
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON format for record");
-        return false;
+        (void)e;
+        return Validator::buildResult(false, message_code::InvalidJSON, "invalid record JSON");
     }
 }
 
-bool Validator::validateUserJson(const Json &j, Response &res)
+ValidationResult Validator::validateUserJson(const Json &j)
 {
+    if (!j.is_object())
+    {
+        return Validator::buildResult(false, message_code::InvalidJSON, "invalid user JSON");
+    }
+
     try
     {
+        if (!j.contains("username") || !j["username"].is_string())
+        {
+            return Validator::buildResult(false, message_code::InvalidPARAM, "username is required");
+        }
+        if (!j.contains("password") || !j["password"].is_string())
+        {
+            return Validator::buildResult(false, message_code::InvalidPARAM, "password is required");
+        }
+
         std::string username = j["username"];
         std::string password = j["password"];
 
-        size_t len_name = username.length();
-        size_t len_password = password.length();
-
-        if ((len_name >= 3 && len_name <= 32) && (len_password >= 6 && len_password <= 64))
+        if (username.length() < 3 || username.length() > 32)
         {
-
-            Logger::info("Validator::validateUserJson , user JSON parameters are valid");
-            return true;
+            return Validator::buildResult(false, message_code::InvalidPARAM, "username length must be between 3 and 32");
         }
-        Logger::error("Validator::validateUserJson , invalid username or password length");
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidPARAM, "invalid username or password length");
-        return false;
+        if (password.length() < 6 || password.length() > 64)
+        {
+            return Validator::buildResult(false, message_code::InvalidPARAM, "password length must be between 6 and 64");
+        }
+
+        return Validator::buildResult(true, message_code::Success, "");
     }
     catch (const std::exception &e)
     {
-        Logger::error("Validator::validateUserJson , Exception: " + std::string(e.what()));
-        Handler::sendError(res, http_status::bad_request, message_code::InvalidJSON, "invalid JSON format for user");
-        return false;
+        (void)e;
+        return Validator::buildResult(false, message_code::InvalidJSON, "invalid user JSON");
     }
 }

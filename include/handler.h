@@ -8,24 +8,9 @@
 #include "TokenManager.h"
 #include "Validator.h"
 #include "Logger.h"
+#include "Status.h"
 
 #include <iostream>
-
-enum class message_code // 业务错误码
-{
-    InvalidJSON = 4000,   // 请求JSON格式错误
-    InvalidPARAM = 4001,  // 请求参数有问题，比如分页参数不合法，或者记录的金额为负数等
-    Unauthorized = 4010,  // 没登录，或 token 无效
-    InternalError = 5000, // 服务器内部错误
-};
-
-enum class http_status // HTTP状态码
-{
-    success = 200,
-    bad_request = 400,    // 请求格式或参数有问题
-    unauthorized = 401,   // 没登录，或 token 无效
-    internal_error = 500, // 服务器内部错误
-};
 
 class Handler
 {
