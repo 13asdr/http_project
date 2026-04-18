@@ -70,7 +70,7 @@ void Handler::List(RecordDao &dao, const Request &req, Response &res)
         // 查询记录条数
         int count = dao.count_records(userId);
         // 查询记录
-        auto records = dao.list_order_by_time(userId, l);
+        auto records = dao.list_order_by_timeAndId(userId, l);
         Json records_json = Json::array();
         for (auto &r : records)
         {
@@ -242,7 +242,7 @@ void Handler::Update(RecordDao &dao, const Request &req, Response &res)
     {
         Logger::info("Handler::Update , Record update request received");
         auto userId = authCheck(req, res);
-        if (userId == -1) 
+        if (userId == -1)
         {
             return;
         }
@@ -359,10 +359,11 @@ void Handler::Add(UserDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("Handler::Add , Record User Add request body: " + req.body);
+        Logger::info("Handler::Add , User Add request received");
         auto j = Json::parse(req.body);
         User user;
         JsonToUser(j, user);
+        user.password = Crypto::sha256(user.password);
 
         Json result;
         if (dao.add(user))
@@ -389,10 +390,11 @@ void Handler::Update(UserDao &dao, const Request &req, Response &res)
 {
     try
     {
-        Logger::info("accept User Update request body: " + req.body);
+        Logger::info("Handler::Update , User Update request received");
         auto j = Json::parse(req.body);
         User user;
         JsonToUser(j, user);
+        user.password = Crypto::sha256(user.password);
 
         Json result;
         if (dao.update(user))
@@ -465,9 +467,10 @@ void Handler::Login(UserDao &dao, const Request &req, Response &res)
         User user;
         JsonToUser(j, user);
         auto userOptional = dao.query(user.username);
+        auto _password = Crypto::sha256(user.password);
 
         Json result;
-        if (!userOptional.has_value() || userOptional.value().password != user.password)
+        if (!userOptional.has_value() || userOptional.value().password != _password)
         {
             result["status"] = "error";
             result["message"] = "user not found or password error";
@@ -506,8 +509,8 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         auto j = Json::parse(req.body);
 
         User user;
-        auto userOptional = dao.query(user.username);
         JsonToUser(j, user);
+        auto userOptional = dao.query(user.username);
         Json result;
 
         if (userOptional.has_value())
@@ -518,6 +521,7 @@ void Handler::Register(UserDao &dao, const Request &req, Response &res)
         }
         else
         {
+            user.password = Crypto::sha256(user.password);
             dao.add(user);
             result["status"] = "ok";
             result["message"] = "register success , please login";
@@ -612,7 +616,7 @@ void Handler::RecordToJson(const Record &r, Json &j)
 void Handler::JsonToUser(Json &j, User &u)
 {
     u.username = j["username"];
-    u.password = Crypto::sha256(j["password"]);
+    u.password = j["password"];
 }
 
 // void Handler::UserToJson(const User &u, Json &j)
