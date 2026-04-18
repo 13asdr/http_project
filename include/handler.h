@@ -6,15 +6,25 @@
 #include "RecordDao.h"
 #include "UserDao.h"
 #include "TokenManager.h"
+#include "Validator.h"
+#include "Logger.h"
 
 #include <iostream>
 
-enum class message_code : int
+enum class message_code // 业务错误码
 {
     InvalidJSON = 4000,
     InvalidPARAM = 4001,
     Unauthorized = 4010,
     InternalError = 5000,
+};
+
+enum class http_status // HTTP状态码
+{
+    success = 200,
+    bad_request = 400,    // 请求格式或参数有问题
+    unauthorized = 401,   // 没登录，或 token 无效
+    internal_error = 500, // 服务器内部错误
 };
 
 class Handler
@@ -43,9 +53,13 @@ public:
     static void Register(UserDao &dao, const Request &req, Response &res);
     static void Logout(const Request &req, Response &res);
 
-    // 暂时删除的函数:
-    static void ListByMonth(RecordDao &dao, const Request &req, Response &res); // 按月份查询 // 暂时删除 , 不支持分页
-    static void Search(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词   //暂时删除 , 不支持分页
+    // // 暂时删除的函数:
+    // static void ListByMonth(RecordDao &dao, const Request &req, Response &res); // 按月份查询 // 暂时删除 , 不支持分页
+    // static void Search(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词   //暂时删除 , 不支持分页
+
+    // 统一的成功响应函数
+    static void sendSuccess(Response &res, const Json &data, const std::string &message);
+    static void sendError(Response &res, http_status status, message_code code, const std::string &message);
 
 private:
     static int authCheck(const Request &req, Response &res); // 认证检查
@@ -54,13 +68,6 @@ private:
     static void RecordToJson(const Record &r, Json &j);
     static void JsonToUser(Json &j, User &u);
     // static void UserToJson(const User &u, Json &j);
-
-    //获取分页参数
-    static limit getLimit(const Request &req);
-
-    // 统一的成功响应函数
-    static void sendSuccess(Response &res, const Json &data, const std::string &message);
-    static void sendError(Response &res, int httpStatus, message_code code, const std::string &message);
 };
 
 #endif
