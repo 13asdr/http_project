@@ -1,11 +1,11 @@
 #include "validator.h"
 
-ValidationResult Validator::parsePositiveInt(const std::string &text, int &value)
+ValidationResult Validator::parsePositiveInt(const std::string &_text, int &_value)
 {
     try
     {
-        value = std::stoi(text);
-        if (value <= 0)
+        _value = std::stoi(_text);
+        if (_value <= 0)
         {
             return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "invalid positive integer");
         }
@@ -18,15 +18,15 @@ ValidationResult Validator::parsePositiveInt(const std::string &text, int &value
     }
 }
 
-ValidationResult Validator::validateLimit(const Request &req, Limit &l)
+ValidationResult Validator::validateLimit(const Request &_req, Limit &_l)
 {
-    if (!req.has_param("page") || !req.has_param("pageSize"))
+    if (!_req.has_param("page") || !_req.has_param("pageSize"))
     {
         return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "missing pagination parameters");
     }
 
-    std::string pageStr = req.get_param_value("page");
-    std::string pageSizeStr = req.get_param_value("pageSize");
+    std::string pageStr = _req.get_param_value("page");
+    std::string pageSizeStr = _req.get_param_value("pageSize");
     if (pageStr.empty() || pageSizeStr.empty())
     {
         return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "empty pagination parameters");
@@ -44,20 +44,20 @@ ValidationResult Validator::validateLimit(const Request &req, Limit &l)
         return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "pageSize must be between 1 and 100");
     }
 
-    l = {page, pageSize};
+    _l = {page, pageSize};
     return Validator::buildResult(true, BusinessStatus::Success, "");
 }
 
-ValidationResult Validator::validateRecordJson(const Json &j)
+ValidationResult Validator::validateRecordJson(const Json &_j)
 {
-    if (!j.is_object())
+    if (!_j.is_object())
     {
         return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid record JSON");
     }
 
     try
     {
-        if (!j.contains("amount") || !j["amount"].is_number())
+        if (!_j.contains("amount") || !_j["amount"].is_number())
         {
             return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "amount must be a number");
         }
@@ -65,7 +65,7 @@ ValidationResult Validator::validateRecordJson(const Json &j)
         const char *requiredFields[] = {"note", "type", "category", "time"};
         for (const char *field : requiredFields)
         {
-            if (!j.contains(field) || !j[field].is_string() || j[field].get<std::string>().empty())
+            if (!_j.contains(field) || !_j[field].is_string() || _j[field].get<std::string>().empty())
             {
                 return Validator::buildResult(false, BusinessStatus::InvalidPARAM, std::string(field) + " is required");
             }
@@ -80,26 +80,26 @@ ValidationResult Validator::validateRecordJson(const Json &j)
     }
 }
 
-ValidationResult Validator::validateUserJson(const Json &j)
+ValidationResult Validator::validateUserJson(const Json &_j)
 {
-    if (!j.is_object())
+    if (!_j.is_object())
     {
         return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid user JSON");
     }
 
     try
     {
-        if (!j.contains("username") || !j["username"].is_string())
+        if (!_j.contains("username") || !_j["username"].is_string())
         {
             return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "username is required");
         }
-        if (!j.contains("password") || !j["password"].is_string())
+        if (!_j.contains("password") || !_j["password"].is_string())
         {
             return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "password is required");
         }
 
-        std::string username = j["username"];
-        std::string password = j["password"];
+        std::string username = _j["username"];
+        std::string password = _j["password"];
 
         if (username.length() < 3 || username.length() > 32)
         {

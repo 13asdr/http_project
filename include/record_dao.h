@@ -28,33 +28,33 @@ struct Record
 class RecordDao
 {
 public:
-    RecordDao(DBconnect &db);
+    RecordDao(DBconnect &_db);
     ~RecordDao();
 
     // 添加
-    bool add(const Record &record);
+    bool add(const Record &_record);
 
     // 分页查询记录
     // 查询记录
-    std::vector<Record> list_order_by_timeAndId(int user_id, Limit l);                         // 时间排序查询所有记录
-    std::vector<Record> list_order_by_id(int user_id);                                    // id排序查询所有记录(专门用于导出)
-    std::vector<Record> listByMonth(const std::string &month_type, int user_id, Limit l); // 按月份查找
-    std::map<std::string, double> statByCategory(int user_id);                            // 查询每个类别别的总金额
+    std::vector<Record> list_order_by_timeAndId(int _user_id, Limit _l);                     // 时间排序查询所有记录
+    std::vector<Record> list_order_by_id(int _user_id);                                      // id排序查询所有记录(专门用于导出)
+    std::vector<Record> listByMonth(const std::string &_month_type, int _user_id, Limit _l); // 按月份查找
+    std::map<std::string, double> statByCategory(int _user_id);                              // 查询每个类别别的总金额
 
     // 模糊查询备注关键词
-    std::vector<Record> search(const std::string &keyword, int user_id, Limit l);                                // 搜索备注关键词,模糊查询
-    std::vector<Record> filter(const std::string &keyword, const std::string &month_type, int user_id, Limit l); // 月份筛选加模糊查询备注关键词
+    std::vector<Record> search(const std::string &_keyword, int _user_id, Limit _l);                                 // 搜索备注关键词,模糊查询
+    std::vector<Record> filter(const std::string &_keyword, const std::string &_month_type, int _user_id, Limit _l); // 月份筛选加模糊查询备注关键词
 
     // 查询中记录数目
-    int count_records(int user_id, const std::string &month_type = "", const std::string &keyword = "");
+    int count_records(int _user_id, const std::string &_month_type = "", const std::string &_keyword = "");
 
     // 更新
-    bool update(int id, const Record &record, int user_id);
+    bool update(int _id, const Record &_record, int _user_id);
 
-    bool remove(int id, int user_id);
+    bool remove(int _id, int _user_id);
 
 private:
     DBconnect &db;
 
-    void RowTORecord(MYSQL_ROW &row, Record &record);
+    void RowTORecord(MYSQL_ROW &_row, Record &_record);
 };

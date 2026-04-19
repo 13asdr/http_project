@@ -29,7 +29,7 @@ public:
         spdlog::set_default_logger(logger);
     }
 
-    static void info(const std::string &msg) { spdlog::info(msg); }
-    static void warn(const std::string &msg) { spdlog::warn(msg); }
-    static void error(const std::string &msg) { spdlog::error(msg); }
+    static void info(const std::string &_msg) { spdlog::info(_msg); }
+    static void warn(const std::string &_msg) { spdlog::warn(_msg); }
+    static void error(const std::string &_msg) { spdlog::error(_msg); }
 };

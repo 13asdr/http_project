@@ -1,8 +1,8 @@
 #include "config.h"
 
-Config::Config(const std::string &config)
+Config::Config(const std::string &_config)
 {
-    INIReader reader(config);
+    INIReader reader(_config);
     if (reader.ParseError() < 0)
     {
         throw std::runtime_error("Error parsing config file");

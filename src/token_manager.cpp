@@ -16,23 +16,23 @@ std::string TokenManager::generate_random_string()
     return result;
 }
 
-std::string TokenManager::generate_token(int userId) // 生成token
+std::string TokenManager::generate_token(int _userId) // 生成token
 {
     std::string token = generate_random_string();
     lock_guard lock(mutex_);
-    tokens_.try_emplace(token, userId);
+    tokens_.try_emplace(token, _userId);
     return token;
 }
-int TokenManager::validate_token(const std::string &token) // 验证token
+int TokenManager::validate_token(const std::string &_token) // 验证token
 {
     lock_guard lock(mutex_);
-    auto result = tokens_.find(token);
+    auto result = tokens_.find(_token);
     if (result == tokens_.end()) // 没找到token
         return -1;
     return result->second; // 找到了返回对应的userID
 }
-void TokenManager::remove_token(const std::string &token) // 删除token
+void TokenManager::remove_token(const std::string &_token) // 删除token
 {
     lock_guard lock(mutex_);
-    tokens_.erase(token); // 移除token
+    tokens_.erase(_token); // 移除token
 }

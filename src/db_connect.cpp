@@ -1,7 +1,7 @@
 
 #include "db_connect.h"
 
-DBconnect::DBconnect(const DBconfig &config)
+DBconnect::DBconnect(const DBconfig &_config)
 {
     conn = mysql_init(nullptr);
     if (!conn)
@@ -9,7 +9,7 @@ DBconnect::DBconnect(const DBconfig &config)
         throw std::runtime_error("mysql_init failed");
     }
 
-    if (!mysql_real_connect(conn, config.host.c_str(), config.user.c_str(), config.password.c_str(), config.database.c_str(), config.port, config.__unix_socket, config.__client_flag))
+    if (!mysql_real_connect(conn, _config.host.c_str(), _config.user.c_str(), _config.password.c_str(), _config.database.c_str(), _config.port, _config.__unix_socket, _config.__client_flag))
     {
         throw std::runtime_error(mysql_error(conn));
     }
@@ -24,24 +24,24 @@ DBconnect::~DBconnect()
     }
 }
 
-MYSQL_RES *DBconnect::query(const std::string &sql)
+MYSQL_RES *DBconnect::query(const std::string &_sql)
 {
     if (mysql_ping(conn)) // 连接失败
     {
         throw std::runtime_error(mysql_error(conn));
     }
-    if (mysql_query(conn, sql.c_str()) != 0)
+    if (mysql_query(conn, _sql.c_str()) != 0)
     {
         throw std::runtime_error(mysql_error(conn));
     }
     return mysql_store_result(conn);
 }
 
-bool DBconnect::execute(const std::string &sql)
+bool DBconnect::execute(const std::string &_sql)
 {
     if (mysql_ping(conn)) // 连接失败
     {
         throw std::runtime_error(mysql_error(conn));
     }
-    return !mysql_query(conn, sql.c_str());
+    return !mysql_query(conn, _sql.c_str());
 }

@@ -10,7 +10,7 @@ class Crypto
 {
 public:
     // SHA256 加密
-    static std::string sha256(const std::string &input)
+    static std::string sha256(const std::string &_input)
     {
         HCRYPTPROV hProv = 0;
         HCRYPTHASH hHash = 0;
@@ -19,7 +19,7 @@ public:
 
         CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
         CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash);
-        CryptHashData(hHash, (BYTE *)input.c_str(), input.size(), 0);
+        CryptHashData(hHash, (BYTE *)_input.c_str(), _input.size(), 0);
         CryptGetHashParam(hHash, HP_HASHVAL, hash, &hashLen, 0);
 
         CryptDestroyHash(hHash);

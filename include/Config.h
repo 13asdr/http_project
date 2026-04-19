@@ -27,5 +27,5 @@ public:
     DBconfig db;
     ServerConfig server;
 
-    Config(const std::string &config);
+    Config(const std::string &_config);
 };

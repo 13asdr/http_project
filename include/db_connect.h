@@ -10,11 +10,11 @@
 class DBconnect
 {
 public:
-    DBconnect(const DBconfig &config);
+    DBconnect(const DBconfig &_config);
     ~DBconnect();
 
-    MYSQL_RES *query(const std::string &sql);
-    bool execute(const std::string &sql);
+    MYSQL_RES *query(const std::string &_sql);
+    bool execute(const std::string &_sql);
 
 private:
     MYSQL *conn;

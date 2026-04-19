@@ -1,19 +1,19 @@
 #include "user_dao.h"
 
-UserDao::UserDao(DBconnect &db) : db(db) {}
+UserDao::UserDao(DBconnect &_db) : db(_db) {}
 
 UserDao::~UserDao() {}
 
-bool UserDao::add(const User &user)
+bool UserDao::add(const User &_user)
 {
     std::ostringstream sql;
-    sql << "INSERT INTO users (username, password) VALUES ('" << user.username << "', '" << user.password << "')";
+    sql << "INSERT INTO users (username, password) VALUES ('" << _user.username << "', '" << _user.password << "')";
     return db.execute(sql.str());
 }
 
-std::optional<User> UserDao::query(const std::string &username)
+std::optional<User> UserDao::query(const std::string &_username)
 {
-    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + username + "'");
+    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + _username + "'");
     if (!res)
     {
         return std::nullopt;
@@ -34,16 +34,16 @@ std::optional<User> UserDao::query(const std::string &username)
     return user;
 }
 
-bool UserDao::update(const User &user)
+bool UserDao::update(const User &_user)
 {
     std::ostringstream sql;
-    sql << "UPDATE users SET username = '" << user.username << "', password = '" << user.password << "' WHERE username = '" << user.username << "'";
+    sql << "UPDATE users SET username = '" << _user.username << "', password = '" << _user.password << "' WHERE username = '" << _user.username << "'";
     return db.execute(sql.str());
 }
 
-bool UserDao::remove(const std::string &username)
+bool UserDao::remove(const std::string &_username)
 {
     std::ostringstream sql;
-    sql << "DELETE FROM users WHERE username = '" << username << "'";
+    sql << "DELETE FROM users WHERE username = '" << _username << "'";
     return db.execute(sql.str());
 }
