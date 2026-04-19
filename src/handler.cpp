@@ -46,7 +46,7 @@ void Handler::add_record(RecordDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -92,7 +92,7 @@ void Handler::list_records(RecordDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 };
 
@@ -123,7 +123,7 @@ void Handler::stat_by_category(RecordDao &_dao, const Request &_req, Response &_
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -170,7 +170,7 @@ void Handler::filter_records(RecordDao &_dao, const Request &_req, Response &_re
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -228,7 +228,7 @@ void Handler::update_record(RecordDao &_dao, const Request &_req, Response &_res
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -274,7 +274,7 @@ void Handler::remove_record(RecordDao &_dao, const Request &_req, Response &_res
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -311,7 +311,7 @@ void Handler::export_records(RecordDao &_dao, const Request &_req, Response &_re
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -351,7 +351,7 @@ void Handler::add_user(UserDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -390,7 +390,7 @@ void Handler::update_user(UserDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -425,7 +425,7 @@ void Handler::remove_user(UserDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -469,7 +469,7 @@ void Handler::login_user(UserDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -511,7 +511,7 @@ void Handler::register_user(UserDao &_dao, const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -535,7 +535,7 @@ void Handler::logout_user(const Request &_req, Response &_res)
     }
     catch (const std::exception &e)
     {
-        Handler::handle_InternalError(_req, _res, e);
+        Handler::handle_internal_error(_req, _res, e);
     }
 }
 
@@ -554,7 +554,7 @@ int Handler::auth_check(const Request &_req, Response &_res)
     return -1;
 }
 
-void Handler::handle_InternalError(const Request &_req, Response &_res, const std::exception &e)
+void Handler::handle_internal_error(const Request &_req, Response &_res, const std::exception &e)
 {
     Logger::error("Location : " + _req.path + " , Exception: " + e.what());
     Handler::send_error(_res, HttpStatus::InternalError, BusinessStatus::InternalError, "internal server error");
