@@ -10,8 +10,6 @@
 #include "logger.h"
 #include "status.h"
 
-#include <iostream>
-
 class Handler
 {
 public:

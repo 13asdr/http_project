@@ -78,7 +78,7 @@ int main()
 
     Logger::info(information.str());
     bool ok = server.listen(config.server.host.c_str(), config.server.port); // ctrl+c stop
-    Logger::info("listen return: " + std::to_string(ok));
+    Logger::info("listen return: " + std::to_string(static_cast<int>(ok)));
 
     return 0;
 }

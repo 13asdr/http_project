@@ -12,15 +12,15 @@ struct DbConfig
     std::string user;
     std::string password;
     std::string database;
-    size_t port;
+    int port;
     const char *unix_socket = nullptr;
-    size_t client_flag = 0;
+    unsigned long client_flag = 0;
 };
 
 struct ServerConfig
 {
     std::string host;
-    size_t port;
+    int port;
 };
 
 class Config
