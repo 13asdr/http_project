@@ -12,8 +12,8 @@ enum class BusinessStatus // businessStatusCode
 
 enum class HttpStatus // HTTP状态码
 {
-    success = 200,
-    bad_request = 400,    // 请求格式或参数有问题
-    unauthorized = 401,   // 没登录，或 token 无效
-    internal_error = 500, // 服务器内部错误
+    Success = 200,
+    BadRequest = 400,    // 请求格式或参数有问题
+    Unauthorized = 401,   // 没登录，或 token 无效
+    InternalError = 500, // 服务器内部错误
 };
