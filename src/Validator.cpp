@@ -1,120 +1,120 @@
 #include "validator.h"
 
-ValidationResult Validator::parsePositiveInt(const std::string &_text, int &_value)
+ValidationResult Validator::parse_positive_int(const std::string &_text, int &_value)
 {
     try
     {
         _value = std::stoi(_text);
         if (_value <= 0)
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "invalid positive integer");
+            return Validator::build_result(false, MessageCode::InvalidParam, "invalid positive integer");
         }
-        return Validator::buildResult(true, BusinessStatus::Success, "");
+        return Validator::build_result(true, MessageCode::Success, "");
     }
-    catch (const std::exception &e)
+    catch (const std::exception &_e)
     {
-        (void)e;
-        return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "invalid positive integer");
+        (void)_e;
+        return Validator::build_result(false, MessageCode::InvalidParam, "invalid positive integer");
     }
 }
 
-ValidationResult Validator::validateLimit(const Request &_req, Limit &_l)
+ValidationResult Validator::validate_limit(const Request &_req, Limit &_limit)
 {
     if (!_req.has_param("page") || !_req.has_param("pageSize"))
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "missing pagination parameters");
+        return Validator::build_result(false, MessageCode::InvalidParam, "missing pagination parameters");
     }
 
-    std::string pageStr = _req.get_param_value("page");
-    std::string pageSizeStr = _req.get_param_value("pageSize");
-    if (pageStr.empty() || pageSizeStr.empty())
+    std::string page = _req.get_param_value("page");
+    std::string page_size = _req.get_param_value("pageSize");
+    if (page.empty() || page_size.empty())
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "empty pagination parameters");
+        return Validator::build_result(false, MessageCode::InvalidParam, "empty pagination parameters");
     }
 
-    int page = 0;
-    int pageSize = 0;
-    if (!Validator::parsePositiveInt(pageStr, page).is_valid || !Validator::parsePositiveInt(pageSizeStr, pageSize).is_valid)
+    int parsed_page = 0;
+    int parsed_page_size = 0;
+    if (!Validator::parse_positive_int(page, parsed_page).is_valid || !Validator::parse_positive_int(page_size, parsed_page_size).is_valid)
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "pagination parameters must be positive integers");
+        return Validator::build_result(false, MessageCode::InvalidParam, "pagination parameters must be positive integers");
     }
 
-    if (pageSize > 100)
+    if (parsed_page_size > 100)
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "pageSize must be between 1 and 100");
+        return Validator::build_result(false, MessageCode::InvalidParam, "pageSize must be between 1 and 100");
     }
 
-    _l = {page, pageSize};
-    return Validator::buildResult(true, BusinessStatus::Success, "");
+    _limit = {parsed_page, parsed_page_size};
+    return Validator::build_result(true, MessageCode::Success, "");
 }
 
-ValidationResult Validator::validateRecordJson(const Json &_j)
+ValidationResult Validator::validate_record_json(const Json &_json)
 {
-    if (!_j.is_object())
+    if (!_json.is_object())
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid record JSON");
+        return Validator::build_result(false, MessageCode::InvalidJson, "invalid record JSON");
     }
 
     try
     {
-        if (!_j.contains("amount") || !_j["amount"].is_number())
+        if (!_json.contains("amount") || !_json["amount"].is_number())
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "amount must be a number");
+            return Validator::build_result(false, MessageCode::InvalidParam, "amount must be a number");
         }
 
-        const char *requiredFields[] = {"note", "type", "category", "time"};
-        for (const char *field : requiredFields)
+        const char *required_fields[] = {"note", "type", "category", "time"};
+        for (const char *field : required_fields)
         {
-            if (!_j.contains(field) || !_j[field].is_string() || _j[field].get<std::string>().empty())
+            if (!_json.contains(field) || !_json[field].is_string() || _json[field].get<std::string>().empty())
             {
-                return Validator::buildResult(false, BusinessStatus::InvalidPARAM, std::string(field) + " is required");
+                return Validator::build_result(false, MessageCode::InvalidParam, std::string(field) + " is required");
             }
         }
 
-        return Validator::buildResult(true, BusinessStatus::Success, "");
+        return Validator::build_result(true, MessageCode::Success, "");
     }
-    catch (const std::exception &e)
+    catch (const std::exception &_e)
     {
-        (void)e;
-        return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid record JSON");
+        (void)_e;
+        return Validator::build_result(false, MessageCode::InvalidJson, "invalid record JSON");
     }
 }
 
-ValidationResult Validator::validateUserJson(const Json &_j)
+ValidationResult Validator::validate_user_json(const Json &_json)
 {
-    if (!_j.is_object())
+    if (!_json.is_object())
     {
-        return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid user JSON");
+        return Validator::build_result(false, MessageCode::InvalidJson, "invalid user JSON");
     }
 
     try
     {
-        if (!_j.contains("username") || !_j["username"].is_string())
+        if (!_json.contains("username") || !_json["username"].is_string())
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "username is required");
+            return Validator::build_result(false, MessageCode::InvalidParam, "username is required");
         }
-        if (!_j.contains("password") || !_j["password"].is_string())
+        if (!_json.contains("password") || !_json["password"].is_string())
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "password is required");
+            return Validator::build_result(false, MessageCode::InvalidParam, "password is required");
         }
 
-        std::string username = _j["username"];
-        std::string password = _j["password"];
+        std::string username = _json["username"];
+        std::string password = _json["password"];
 
         if (username.length() < 3 || username.length() > 32)
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "username length must be between 3 and 32");
+            return Validator::build_result(false, MessageCode::InvalidParam, "username length must be between 3 and 32");
         }
         if (password.length() < 6 || password.length() > 64)
         {
-            return Validator::buildResult(false, BusinessStatus::InvalidPARAM, "password length must be between 6 and 64");
+            return Validator::build_result(false, MessageCode::InvalidParam, "password length must be between 6 and 64");
         }
 
-        return Validator::buildResult(true, BusinessStatus::Success, "");
+        return Validator::build_result(true, MessageCode::Success, "");
     }
-    catch (const std::exception &e)
+    catch (const std::exception &_e)
     {
-        (void)e;
-        return Validator::buildResult(false, BusinessStatus::InvalidJSON, "invalid user JSON");
+        (void)_e;
+        return Validator::build_result(false, MessageCode::InvalidJson, "invalid user JSON");
     }
 }

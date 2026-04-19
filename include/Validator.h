@@ -1,4 +1,3 @@
-// 封转参数校验
 #pragma once
 
 #include "httplib.h"
@@ -7,12 +6,12 @@
 #include "record_dao.h"
 #include "status.h"
 
-#include <iostream>
+#include <string>
 
 struct ValidationResult
 {
     bool is_valid = true;
-    BusinessStatus code = BusinessStatus::Success;
+    MessageCode code = MessageCode::Success;
     std::string message;
 };
 
@@ -22,13 +21,13 @@ public:
     using Request = httplib::Request;
     using Json = nlohmann::json;
 
-    static ValidationResult parsePositiveInt(const std::string &_text, int &_value);
-    static ValidationResult validateLimit(const Request &_req, Limit &_l);
-    static ValidationResult validateRecordJson(const Json &_j);
-    static ValidationResult validateUserJson(const Json &_j);
+    static ValidationResult parse_positive_int(const std::string &_text, int &_value);
+    static ValidationResult validate_limit(const Request &_req, Limit &_limit);
+    static ValidationResult validate_record_json(const Json &_json);
+    static ValidationResult validate_user_json(const Json &_json);
 
 private:
-    static ValidationResult buildResult(bool _is_valid, BusinessStatus _code, const std::string &_message)
+    static ValidationResult build_result(bool _is_valid, MessageCode _code, const std::string &_message)
     {
         ValidationResult result;
         result.is_valid = _is_valid;

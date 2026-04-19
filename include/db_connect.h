@@ -1,17 +1,17 @@
 #pragma once
 
-#include <iostream>
 #include <mysql.h>
+
 #include <string>
-#include <sstream>
+#include <stdexcept>
+
 #include "config.h"
 
-
-class DBconnect
+class DbConnect
 {
 public:
-    DBconnect(const DBconfig &_config);
-    ~DBconnect();
+    explicit DbConnect(const DbConfig &_config);
+    ~DbConnect();
 
     MYSQL_RES *query(const std::string &_sql);
     bool execute(const std::string &_sql);

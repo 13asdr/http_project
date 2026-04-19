@@ -1,6 +1,6 @@
 #include "user_dao.h"
 
-UserDao::UserDao(DBconnect &_db) : db(_db) {}
+UserDao::UserDao(DbConnect &_db) : db(_db) {}
 
 UserDao::~UserDao() {}
 

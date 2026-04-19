@@ -1,15 +1,15 @@
-
-
 #pragma once
-#include <string>
-#include <vector>
+
 #include <mysql.h>
-#include <sstream>
+
 #include <map>
 #include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "db_connect.h"
 #include "crypto.h"
+#include "db_connect.h"
 
 struct User
 {
@@ -21,23 +21,16 @@ struct User
 class UserDao
 {
 public:
-    using password_Crypto = std::string;
+    using PasswordCrypto = std::string;
 
-    UserDao(DBconnect &_db);
+    explicit UserDao(DbConnect &_db);
     ~UserDao();
 
-    // 添加
     bool add(const User &_user);
-
-    // 查询
-    std::optional<User> query(const std::string &_username); // 返回用户ID，-1表示查询失败
-
-    // 更新
+    std::optional<User> query(const std::string &_username);
     bool update(const User &_user);
-
-    // 删除
     bool remove(const std::string &_username);
 
 private:
-    DBconnect &db;
+    DbConnect &db;
 };

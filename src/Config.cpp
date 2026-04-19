@@ -8,8 +8,6 @@ Config::Config(const std::string &_config)
         throw std::runtime_error("Error parsing config file");
     }
 
-    // 解析数据库配置
-
     db.host = reader.Get("database", "host", "127.0.0.1");
     db.user = reader.Get("database", "user", "root");
     db.password = reader.Get("database", "password", "123456");

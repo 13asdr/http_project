@@ -1,18 +1,20 @@
 #pragma once
-#include <string>
-#include <iostream>
-#include "inih/ini.h"
-#include "inih/INIReader.h"
 
-struct DBconfig
+#include <string>
+#include <stdexcept>
+
+#include "inih/INIReader.h"
+#include "inih/ini.h"
+
+struct DbConfig
 {
     std::string host;
     std::string user;
     std::string password;
     std::string database;
     size_t port;
-    const char *__unix_socket = nullptr;
-    size_t __client_flag = 0;
+    const char *unix_socket = nullptr;
+    size_t client_flag = 0;
 };
 
 struct ServerConfig
@@ -24,8 +26,8 @@ struct ServerConfig
 class Config
 {
 public:
-    DBconfig db;
+    DbConfig db;
     ServerConfig server;
 
-    Config(const std::string &_config);
+    explicit Config(const std::string &_config);
 };

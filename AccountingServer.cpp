@@ -22,7 +22,7 @@ int main()
     httplib::Server server; // 创建HTTP服务器
 
     Config config("config.ini"); // 解析配置文件
-    DBconnect db(config.db);
+    DbConnect db(config.db);
     RecordDao dao(db);
     UserDao userDao(db);
 
