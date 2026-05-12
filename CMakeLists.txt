@@ -1,3 +1,10 @@
+if(DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+    message(STATUS "使用 vcpkg toolchain: $ENV{VCPKG_ROOT}")
+else()
+    message(WARNING "VCPKG_ROOT 环境变量未设置！")
+endif()
+
 cmake_minimum_required(VERSION 3.10)
 project(AccountingServer LANGUAGES C CXX)
 
@@ -15,6 +22,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin/Release)
 set(MYSQL_INCLUDE_DIR "C:/Program Files/MySQL/MySQL Server 8.0/include")
 set(MYSQL_LIB_DIR "C:/Program Files/MySQL/MySQL Server 8.0/lib")
 
+find_package(OpenSSL REQUIRED)
+find_package(jwt-cpp CONFIG REQUIRED)
+
+
 # 可执行文件
 add_executable(AccountingServer
     AccountingServer.cpp
@@ -29,6 +40,15 @@ add_executable(AccountingServer
     third_party/inih/ini.c
 )
 
+# add_executable(test test.cpp)
+
+# 添加编译选项
+# if (MSVC)
+# target_compile_options(AccountingServer PRIVATE /utf-8)
+# else()
+# target_compile_options(AccountingServer PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8)
+# endif()
+
 # 头文件路径
 target_include_directories(AccountingServer PRIVATE
     ${PROJECT_SOURCE_DIR}/include
@@ -36,13 +56,17 @@ target_include_directories(AccountingServer PRIVATE
     ${MYSQL_INCLUDE_DIR}
 )
 
-# 添加编译选项
-target_compile_options(AccountingServer PRIVATE /utf-8)
-
 # 链接 MySQL
 target_link_directories(AccountingServer PRIVATE ${MYSQL_LIB_DIR})
 target_link_libraries(AccountingServer PRIVATE libmysql)
 target_link_libraries(AccountingServer PRIVATE crypt32)
+target_link_libraries(AccountingServer PRIVATE
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    jwt-cpp::jwt-cpp
+)
+
+target_compile_options(AccountingServer PRIVATE /utf-8) # 必须是 MSVC，GCC会报错
 
 # 拷贝 libmysql.dll 到输出目录
 add_custom_command(TARGET AccountingServer POST_BUILD

@@ -17,3 +17,19 @@ Config::Config(const std::string &_config)
     server.host = reader.Get("server", "host", "0.0.0.0");
     server.port = reader.GetInteger("server", "port", 8080);
 }
+
+Config_Jwt::Config_Jwt(const std::string &_config_file)
+{
+    this->load_config(_config_file);
+}
+
+void Config_Jwt::load_config(const std::string &_config_file)
+{
+    INIReader reader(_config_file);
+    if (reader.ParseError() < 0)
+    {
+        throw std::runtime_error("Error parsing config file");
+    }
+
+    secret_key = reader.Get("secret", "jwt_secret", "my_super_secret_key");
+}

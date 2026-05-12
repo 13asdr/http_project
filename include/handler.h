@@ -22,8 +22,8 @@ public:
     static void list_records(RecordDao &_dao, const Request &_req, Response &_res);
     static void stat_by_category(RecordDao &_dao, const Request &_req, Response &_res);
     static void filter_records(RecordDao &_dao, const Request &_req, Response &_res); // 模糊查询备注关键词 AND 月份筛选
-    static void update_record(RecordDao &_dao, const Request &_req, Response &_res); // 更新函数
-    static void remove_record(RecordDao &_dao, const Request &_req, Response &_res); // 删除记录
+    static void update_record(RecordDao &_dao, const Request &_req, Response &_res);  // 更新函数
+    static void remove_record(RecordDao &_dao, const Request &_req, Response &_res);  // 删除记录
     static void export_records(RecordDao &_dao, const Request &_req, Response &_res); // 导出记录
 
     // user 相关接口
@@ -39,6 +39,7 @@ public:
     // 统一的成功响应函数
     static void send_success(Response &_res, const Json &_data, const std::string &_message);
     static void send_error(Response &_res, HttpStatus _status, MessageCode _code, const std::string &_message);
+
 
 private:
     static int auth_check(const Request &_req, Response &_res); // 认证检查

@@ -82,6 +82,7 @@ Testing/
 # cmake
 CMakeCache.txt
 CMakeFiles/
+CMakeUserPreset.json
 
 # VS Code (可选)
 .vscode/*
@@ -89,3 +90,11 @@ CMakeFiles/
 !.vscode/tasks.json
 
 .vscode/launch.json
+
+# 配置文件
+*.ini
+
+
+# 测试文件
+
+test.cpp

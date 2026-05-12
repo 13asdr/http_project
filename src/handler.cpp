@@ -7,6 +7,11 @@ void Handler::add_record(RecordDao &_dao, const Request &_req, Response &_res)
     {
         Logger::info("Handler::add_record , RecordAdd request received");
 
+        auto userId = auth_check(_req, _res);
+        if (userId == -1)
+        {
+            return;
+        }
         if (!Json::accept(_req.body))
         {
             Logger::error("Handler::add_record , RecordAdd request body is not valid JSON");
@@ -20,12 +25,6 @@ void Handler::add_record(RecordDao &_dao, const Request &_req, Response &_res)
         {
             Logger::error("Handler::add_record , RecordAdd request has invalid JSON parameters: " + vr.message);
             Handler::send_error(_res, HttpStatus::BadRequest, vr.code, vr.message);
-            return;
-        }
-
-        auto userId = auth_check(_req, _res);
-        if (userId == -1)
-        {
             return;
         }
 
@@ -521,16 +520,18 @@ void Handler::logout_user(const Request &_req, Response &_res)
     {
         Logger::info("Handler::logout_user , User Logout request received");
         auto token = _req.get_header_value("token");
-        if (TokenManager::validate_token(token) != -1)
+        auto info_token = TokenManager::validate_token(token);
+        auto user_id = info_token.user_id;
+        auto jwt_status = info_token.status;
+        if (user_id != -1)
         {
-            TokenManager::remove_token(token);
             Logger::info("Handler::logout_user , User Logout success");
             Handler::send_success(_res, Json::object(), "logout success");
         }
         else
         {
             Logger::info("Handler::logout_user , User Logout failed");
-            Handler::send_error(_res, HttpStatus::Unauthorized, MessageCode::Unauthorized, "invalid token");
+            Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_code(jwt_status), "token problems");
         }
     }
     catch (const std::exception &e)
@@ -542,15 +543,17 @@ void Handler::logout_user(const Request &_req, Response &_res)
 int Handler::auth_check(const Request &_req, Response &_res)
 {
     auto token = _req.get_header_value("token");
-    auto userId = TokenManager::validate_token(token);
-    if (userId != -1)
+    auto info_token = TokenManager::validate_token(token);
+    auto user_id = info_token.user_id;
+    auto jwt_status = info_token.status;
+    if (user_id != -1)
     {
-        Logger::info("Handler::auth_check , User auth_check success, userId: " + std::to_string(userId));
-        return userId;
+        Logger::info("Handler::auth_check , User auth_check success, userId: " + std::to_string(user_id));
+        return static_cast<int>(user_id);
     }
 
     Logger::info("Handler::auth_check , User auth_check failed, token is invalid");
-    Handler::send_error(_res, HttpStatus::Unauthorized, MessageCode::Unauthorized, "invalid token");
+    Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_code(jwt_status), "token problems");
     return -1;
 }
 
@@ -592,7 +595,7 @@ void Handler::send_success(Response &_res, const Json &_data, const std::string 
     result["message"] = _message;
     result["data"] = _data;
     _res.set_content(result.dump(), "application/json");
-    _res.status = static_cast<int>(HttpStatus::Success);    
+    _res.status = static_cast<int>(HttpStatus::Success);
 }
 
 void Handler::send_error(Response &_res, HttpStatus _status, MessageCode _code, const std::string &_message)

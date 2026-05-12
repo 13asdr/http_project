@@ -1,38 +1,59 @@
 #include "token_manager.h"
-// 初始化token容器
-TokenManager::map_type TokenManager::tokens_ = {};
-std::mutex TokenManager::mutex_;
 
-std::string TokenManager::generate_random_string()
+std::string TokenManager::secret_key = Config_Jwt("jwt.ini").get_secret_key();
+
+std::string TokenManager::generate_token(size_t _userid) // 生成token
 {
-    static const std::string chars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    std::random_device rd; // 每次重新构造，访问硬件
-    std::uniform_int_distribution<int> dis(0, chars.size() - 1);
+    auto token = jwt::create<jwt_traits>()
+                     .set_algorithm("HS256")
+                     .set_type("JWT")
+                     .set_issuer("AccountingServer")
+                     .set_subject(std::to_string(_userid))
+                     .set_issued_at(std::chrono::system_clock::now())
+                     .set_expires_at(std::chrono::system_clock::now() + std::chrono::hours(24))
+                     .set_payload_claim("sample", jwt::claim(std::string("test")))
+                     .sign(jwt::algorithm::hs256{TokenManager::secret_key});
 
-    std::string result(16, '\0');
-    for (auto &c : result)
-        c = chars[dis(rd)]; // rd 直接作为真随机引擎
-    return result;
-}
+    Logger::info("Generated token for user_id " + std::to_string(_userid) + ": " + token);
 
-std::string TokenManager::generate_token(int _userId) // 生成token
-{
-    std::string token = generate_random_string();
-    lock_guard lock(mutex_);
-    tokens_.try_emplace(token, _userId);
     return token;
 }
-int TokenManager::validate_token(const std::string &_token) // 验证token
+InfoToken TokenManager::validate_token(const std::string &_token) // 验证token
 {
-    lock_guard lock(mutex_);
-    auto result = tokens_.find(_token);
-    if (result == tokens_.end()) // 没找到token
-        return -1;
-    return result->second; // 找到了返回对应的userID
-}
-void TokenManager::remove_token(const std::string &_token) // 删除token
-{
-    lock_guard lock(mutex_);
-    tokens_.erase(_token); // 移除token
+    try
+    {
+        auto decoded = jwt::decode<jwt_traits>(_token);
+
+        auto verifier = jwt::verify<jwt_traits>()
+                            .allow_algorithm(jwt::algorithm::hs256{TokenManager::secret_key}) // 指定算法和密钥
+                            .with_issuer("AccountingServer")                          // 验证 iss
+                            .with_claim("sample", jwt::claim(std::string("test")));
+        // exp 过期时间自动验证，不需要手动写
+
+        verifier.verify(decoded); // 失败抛异常
+        // 验证通过，读取数据
+        size_t user_id = std::stoul(decoded.get_subject());
+        std::string sample = decoded.get_payload_claim("sample").as_string();
+
+        Logger::info("user_id: " + std::to_string(user_id) + ", sample: " + sample);
+
+        return InfoToken{user_id, JwtStatus::Valid};
+    }
+    catch (const jwt::error::token_verification_exception &e)
+    {
+        auto code = e.code();
+
+        if (code == jwt::error::token_verification_error::token_expired)
+        {
+            Logger::error("Token expired: " + std::string(e.what()));
+            return InfoToken{0, JwtStatus::Expired};
+        }
+        Logger::error("Token verification failed: " + std::string(e.what()));
+        return InfoToken{0, JwtStatus::Invalid};
+    }
+    catch (const std::exception &e)
+    {
+        Logger::error("error: " + std::string(e.what()));
+        return InfoToken{0, JwtStatus::Invalid};
+    }
 }
