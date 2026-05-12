@@ -32,14 +32,14 @@ public:
     explicit Config(const std::string &_config);
 };
 
-class Config_Jwt
+class JwtConfig
 {
 public:
-    explicit Config_Jwt(const std::string &_config_file);
+    explicit JwtConfig(const std::string &_config_file);
 
     void load_config(const std::string &_config_file);
 
-    std::string get_secret_key() const { return this->secret_key; }
+    const std::string &get_secret_key() const { return secret_key; }
 
 private:
     std::string secret_key;

@@ -79,3 +79,8 @@ add_custom_command(TARGET AccountingServer POST_BUILD
     ${PROJECT_SOURCE_DIR}/config.ini
     $<TARGET_FILE_DIR:AccountingServer>
 )
+add_custom_command(TARGET AccountingServer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/jwt.ini
+    $<TARGET_FILE_DIR:AccountingServer>
+)

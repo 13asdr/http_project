@@ -68,7 +68,7 @@ int main()
     // 允许所有跨域请求
     server.set_default_headers({{"Access-Control-Allow-Origin", "*"},
                                 {"Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"},
-                                {"Access-Control-Allow-Headers", "Content-Type, token"}});
+                                {"Access-Control-Allow-Headers", "Content-Type, token, Authorization"}});
     // 处理 OPTIONS 预检请求
     server.Options(".*", [](const httplib::Request &, httplib::Response &res)
                    { res.status = 204; });

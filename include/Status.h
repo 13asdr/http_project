@@ -25,7 +25,7 @@ enum class JwtStatus
     Expired = 2
 };
 
-inline MessageCode jwt_status_to_code(JwtStatus _jwt_status)
+inline MessageCode jwt_status_to_message_code(JwtStatus _jwt_status)
 {
     switch (_jwt_status)
     {
@@ -37,5 +37,20 @@ inline MessageCode jwt_status_to_code(JwtStatus _jwt_status)
         return MessageCode::TokenExpired;
     default:
         return MessageCode::InternalError;
+    }
+}
+
+inline const char *jwt_status_to_message(JwtStatus _jwt_status)
+{
+    switch (_jwt_status)
+    {
+    case JwtStatus::Valid:
+        return "success";
+    case JwtStatus::Invalid:
+        return "invalid token";
+    case JwtStatus::Expired:
+        return "token expired";
+    default:
+        return "internal server error";
     }
 }

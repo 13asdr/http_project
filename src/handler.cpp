@@ -523,7 +523,7 @@ void Handler::logout_user(const Request &_req, Response &_res)
         auto info_token = TokenManager::validate_token(token);
         auto user_id = info_token.user_id;
         auto jwt_status = info_token.status;
-        if (user_id != -1)
+        if (jwt_status == JwtStatus::Valid)
         {
             Logger::info("Handler::logout_user , User Logout success");
             Handler::send_success(_res, Json::object(), "logout success");
@@ -531,7 +531,7 @@ void Handler::logout_user(const Request &_req, Response &_res)
         else
         {
             Logger::info("Handler::logout_user , User Logout failed");
-            Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_code(jwt_status), "token problems");
+            Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_message_code(jwt_status), jwt_status_to_message(jwt_status));
         }
     }
     catch (const std::exception &e)
@@ -546,14 +546,14 @@ int Handler::auth_check(const Request &_req, Response &_res)
     auto info_token = TokenManager::validate_token(token);
     auto user_id = info_token.user_id;
     auto jwt_status = info_token.status;
-    if (user_id != -1)
+    if (jwt_status == JwtStatus::Valid)
     {
         Logger::info("Handler::auth_check , User auth_check success, userId: " + std::to_string(user_id));
         return static_cast<int>(user_id);
     }
 
     Logger::info("Handler::auth_check , User auth_check failed, token is invalid");
-    Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_code(jwt_status), "token problems");
+    Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_message_code(jwt_status), jwt_status_to_message(jwt_status));
     return -1;
 }
 
