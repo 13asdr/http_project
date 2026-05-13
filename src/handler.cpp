@@ -519,7 +519,12 @@ void Handler::logout_user(const Request &_req, Response &_res)
     try
     {
         Logger::info("Handler::logout_user , User Logout request received");
-        auth_check(_req, _res);
+        auto user_id = auth_check(_req, _res);
+        if (user_id == -1)
+        {
+            return;
+        }
+
         Logger::info("Handler::logout_user , User Logout success");
         Handler::send_success(_res, Json::object(), "logout success");
     }
@@ -531,13 +536,6 @@ void Handler::logout_user(const Request &_req, Response &_res)
 
 int Handler::auth_check(const Request &_req, Response &_res)
 {
-    if (!_req.has_header("Authorization"))
-    {
-        Logger::error("Handler::auth_check , Authorization header not found");
-        Handler::send_error(_res, HttpStatus::Unauthorized, MessageCode::Unauthorized, "missing Authorization header");
-        return -1;
-    }
-    Logger::info("Handler::auth_check , Authorization header found");
     auto bearer_token = _req.get_header_value("Authorization");
     auto token_result = Validator::validate_token(bearer_token);
     if (!token_result.is_valid)

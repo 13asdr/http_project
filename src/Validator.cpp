@@ -123,7 +123,21 @@ ValidationResult Validator::validate_token(const std::string &_token)
 {
     if (_token.empty())
     {
-        return Validator::build_result(false, MessageCode::InvalidParam, "token is required");
+        return Validator::build_result(false, MessageCode::Unauthorized, "Authorization header is required");
     }
+
+    constexpr const char *bearer_prefix = "Bearer ";
+    constexpr std::size_t bearer_prefix_length = 7;
+
+    if (_token.rfind(bearer_prefix, 0) != 0)
+    {
+        return Validator::build_result(false, MessageCode::Unauthorized, "Authorization header must use Bearer token");
+    }
+
+    if (_token.size() <= bearer_prefix_length)
+    {
+        return Validator::build_result(false, MessageCode::Unauthorized, "Bearer token is required");
+    }
+
     return Validator::build_result(true, MessageCode::Success, "");
 }
