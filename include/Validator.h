@@ -25,6 +25,7 @@ public:
     static ValidationResult validate_limit(const Request &_req, Limit &_limit);
     static ValidationResult validate_record_json(const Json &_json);
     static ValidationResult validate_user_json(const Json &_json);
+    static ValidationResult validate_token(const std::string &_token);
 
 private:
     static ValidationResult build_result(bool _is_valid, MessageCode _code, const std::string &_message)

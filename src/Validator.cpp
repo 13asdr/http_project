@@ -118,3 +118,12 @@ ValidationResult Validator::validate_user_json(const Json &_json)
         return Validator::build_result(false, MessageCode::InvalidJson, "invalid user JSON");
     }
 }
+
+ValidationResult Validator::validate_token(const std::string &_token)
+{
+    if (_token.empty())
+    {
+        return Validator::build_result(false, MessageCode::InvalidParam, "token is required");
+    }
+    return Validator::build_result(true, MessageCode::Success, "");
+}

@@ -519,20 +519,9 @@ void Handler::logout_user(const Request &_req, Response &_res)
     try
     {
         Logger::info("Handler::logout_user , User Logout request received");
-        auto token = _req.get_header_value("token");
-        auto info_token = TokenManager::validate_token(token);
-        auto user_id = info_token.user_id;
-        auto jwt_status = info_token.status;
-        if (jwt_status == JwtStatus::Valid)
-        {
-            Logger::info("Handler::logout_user , User Logout success");
-            Handler::send_success(_res, Json::object(), "logout success");
-        }
-        else
-        {
-            Logger::info("Handler::logout_user , User Logout failed");
-            Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_message_code(jwt_status), jwt_status_to_message(jwt_status));
-        }
+        auth_check(_req, _res);
+        Logger::info("Handler::logout_user , User Logout success");
+        Handler::send_success(_res, Json::object(), "logout success");
     }
     catch (const std::exception &e)
     {
@@ -542,7 +531,22 @@ void Handler::logout_user(const Request &_req, Response &_res)
 
 int Handler::auth_check(const Request &_req, Response &_res)
 {
-    auto token = _req.get_header_value("token");
+    if (!_req.has_header("Authorization"))
+    {
+        Logger::error("Handler::auth_check , Authorization header not found");
+        Handler::send_error(_res, HttpStatus::Unauthorized, MessageCode::Unauthorized, "missing Authorization header");
+        return -1;
+    }
+    Logger::info("Handler::auth_check , Authorization header found");
+    auto bearer_token = _req.get_header_value("Authorization");
+    auto token_result = Validator::validate_token(bearer_token);
+    if (!token_result.is_valid)
+    {
+        Logger::error("Handler::auth_check , Authorization header is invalid: " + token_result.message);
+        Handler::send_error(_res, HttpStatus::Unauthorized, token_result.code, token_result.message);
+        return -1;
+    }
+    auto token = bearer_token.substr(7); // Remove "Bearer " prefix
     auto info_token = TokenManager::validate_token(token);
     auto user_id = info_token.user_id;
     auto jwt_status = info_token.status;
