@@ -462,6 +462,7 @@ void Handler::login_user(UserDao &_dao, const Request &_req, Response &_res)
             return;
         }
         Json data;
+        data["tokenType"] = "Bearer";
         data["token"] = TokenManager::generate_token(userOptional.value().id);
         Handler::send_success(_res, data, "login success");
         Logger::info("Handler::login_user , User Login success");
@@ -536,15 +537,15 @@ void Handler::logout_user(const Request &_req, Response &_res)
 
 int Handler::auth_check(const Request &_req, Response &_res)
 {
-    auto bearer_token = _req.get_header_value("Authorization");
-    auto token_result = Validator::validate_token(bearer_token);
+    std::string token;
+    auto token_result = extract_bearer_token(_req, token);
     if (!token_result.is_valid)
     {
         Logger::error("Handler::auth_check , Authorization header is invalid: " + token_result.message);
         Handler::send_error(_res, HttpStatus::Unauthorized, token_result.code, token_result.message);
         return -1;
     }
-    auto token = bearer_token.substr(7); // Remove "Bearer " prefix
+
     auto info_token = TokenManager::validate_token(token);
     auto user_id = info_token.user_id;
     auto jwt_status = info_token.status;
@@ -557,6 +558,20 @@ int Handler::auth_check(const Request &_req, Response &_res)
     Logger::info("Handler::auth_check , User auth_check failed, token is invalid");
     Handler::send_error(_res, HttpStatus::Unauthorized, jwt_status_to_message_code(jwt_status), jwt_status_to_message(jwt_status));
     return -1;
+}
+
+ValidationResult Handler::extract_bearer_token(const Request &_req, std::string &_token)
+{
+    auto bearer_token = _req.get_header_value("Authorization");
+    auto token_result = Validator::validate_token(bearer_token);
+    if (!token_result.is_valid)
+    {
+        return token_result;
+    }
+
+    constexpr std::size_t bearer_prefix_length = 7;
+    _token = bearer_token.substr(bearer_prefix_length);
+    return ValidationResult{};
 }
 
 void Handler::handle_internal_error(const Request &_req, Response &_res, const std::exception &e)
