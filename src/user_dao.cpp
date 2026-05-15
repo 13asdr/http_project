@@ -18,7 +18,7 @@ std::optional<User> UserDao::query(const std::string &_username)
 {
     std::string escaped_username = escape_string(_username);
 
-    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + escaped_username + "'"); // 有隐患
+    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + escaped_username + "'");
     if (!res)
     {
         return std::nullopt;
@@ -44,7 +44,7 @@ bool UserDao::update(const User &_user)
     User escaped_user = escape_user(_user);
 
     std::ostringstream sql;
-    sql << "UPDATE users SET username = '" << escaped_user.username << "', password = '" << escaped_user.password << "' WHERE username = '" << escaped_user.username << "'";
+    sql << "UPDATE users SET password = '" << escaped_user.password << "' WHERE username = '" << escaped_user.username << "'";
     return db.execute(sql.str());
 }
 
