@@ -33,4 +33,8 @@ public:
 
 private:
     DbConnect &db;
+
+    std::string escape_string(const std::string &_input);
+    User escape_user(const User &_user);
+
 };

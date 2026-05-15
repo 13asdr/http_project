@@ -61,13 +61,30 @@ ValidationResult Validator::validate_record_json(const Json &_json)
         {
             return Validator::build_result(false, MessageCode::InvalidParam, "amount must be a number");
         }
-
-        const char *required_fields[] = {"note", "type", "category", "time"};
-        for (const char *field : required_fields)
+        if (!_json.contains("note"))
         {
-            if (!_json.contains(field) || !_json[field].is_string() || _json[field].get<std::string>().empty())
+            return Validator::build_result(false, MessageCode::InvalidParam, "note is required");
+        }
+        if (!_json.contains("note") || !_json["note"].is_string() || _json["note"].get<std::string>().empty())
+        {
+            return Validator::build_result(false, MessageCode::InvalidParam, "note  must be a non-empty string");
+        }
+
+        const FieldValidator validators[] = {
+            {"type", &Validator::validate_type, "type must be either 支出 or 收入"},
+            {"category", &Validator::validate_category, "category must be one of 餐饮, 交通, 购物, 工资, 学习, 娱乐, 其他"},
+            {"time", &Validator::validate_time, "time must be in format YYYY-MM-DDTHH:MM:SS"}};
+
+        for (const auto &validator : validators)
+        {
+            if (!_json.contains(validator.field_name))
             {
-                return Validator::build_result(false, MessageCode::InvalidParam, std::string(field) + " is required");
+                return Validator::build_result(false, MessageCode::InvalidParam, std::string(validator.field_name) + " is required");
+            }
+
+            if (!_json[validator.field_name].is_string() || !validator.validate(_json[validator.field_name].get<std::string>()))
+            {
+                return Validator::build_result(false, MessageCode::InvalidParam, validator.error_msg);
             }
         }
 
@@ -140,4 +157,18 @@ ValidationResult Validator::validate_token(const std::string &_token)
     }
 
     return Validator::build_result(true, MessageCode::Success, "");
+}
+
+bool Validator::validate_time(const std::string &time)
+{
+    std::regex time_regex(R"(^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$)");
+    return std::regex_match(time, time_regex);
+}
+bool Validator::validate_type(const std::string &time)
+{
+    return time == "支出" || time == "收入";
+}
+bool Validator::validate_category(const std::string &time)
+{
+    return time == "餐饮" || time == "交通" || time == "购物" || time == "工资" || time == "学习" || time == "娱乐" || time == "其他";
 }

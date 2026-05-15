@@ -15,6 +15,7 @@ public:
 
     MYSQL_RES *query(const std::string &_sql);
     bool execute(const std::string &_sql);
+    std::string escape_string(const std::string &_input);
 
 private:
     MYSQL *conn;

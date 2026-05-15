@@ -51,3 +51,12 @@ bool DbConnect::execute(const std::string &_sql)
     }
     return !mysql_query(conn, _sql.c_str());
 }
+
+std::string DbConnect::escape_string(const std::string &_input)
+{
+    char *escaped = new char[_input.length() * 2 + 1]();
+    mysql_real_escape_string(conn, escaped, _input.c_str(), static_cast<unsigned long>(_input.length()));
+    std::string result(escaped);
+    delete[] escaped;
+    return result;
+}

@@ -48,4 +48,6 @@ private:
     DbConnect &db;
 
     void row_to_record(MYSQL_ROW &_row, Record &_record);
+    std::string escape_string(const std::string &_input);
+    Record escape_record(const Record &_record);
 };

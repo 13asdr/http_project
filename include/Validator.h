@@ -8,6 +8,15 @@
 
 #include <string>
 
+
+struct FieldValidator
+{
+    const char *field_name;
+    std::function<bool(const std::string &)> validate;
+    const char *error_msg;
+};
+
+
 struct ValidationResult
 {
     bool is_valid = true;
@@ -28,7 +37,12 @@ public:
     static ValidationResult validate_token(const std::string &_token);
 
 private:
-    static ValidationResult build_result(bool _is_valid, MessageCode _code, const std::string &_message)
+    static bool validate_time(const std::string& time);    
+    static bool validate_type(const std::string& time);    
+    static bool validate_category(const std::string& time);    
+
+
+static ValidationResult build_result(bool _is_valid, MessageCode _code, const std::string &_message)
     {
         ValidationResult result;
         result.is_valid = _is_valid;
