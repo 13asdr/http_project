@@ -10,6 +10,7 @@
 
 #include "crypto.h"
 #include "db_connect.h"
+#include "PreparedStmt.h"
 
 struct User
 {
@@ -36,5 +37,4 @@ private:
 
     std::string escape_string(const std::string &_input);
     User escape_user(const User &_user);
-
 };

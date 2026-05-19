@@ -1,60 +1,123 @@
 #include "user_dao.h"
 
-UserDao::UserDao(DbConnect &_db) : db(_db) {}
+UserDao::UserDao(DbConnect &_db) : db(_db)
+{
+}
 
 UserDao::~UserDao() {}
 
 bool UserDao::add(const User &_user)
 {
-    std::string escaped_username = escape_string(_user.username);
-    std::string escaped_password = escape_string(_user.password);
+    constexpr const char* sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+    PreparedStmt stmt(db.get_conn(), sql);
 
-    std::ostringstream sql;
-    sql << "INSERT INTO users (username, password) VALUES ('" << escaped_username << "', '" << escaped_password << "')";
-    return db.execute(sql.str());
+    const char *username = _user.username.c_str();
+    const char *password = _user.password.c_str();
+
+    MYSQL_BIND input[2] = {};
+    input[0].buffer_type = MYSQL_TYPE_STRING;
+    input[0].buffer = (void *)username;
+    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+
+    input[1].buffer_type = MYSQL_TYPE_STRING;
+    input[1].buffer = (void *)password;
+    input[1].buffer_length = static_cast<unsigned long>(strlen(password));
+
+    if (!stmt.bind_param(input))
+    {
+        return false;
+    }
+    return stmt.execute();
 }
 
 std::optional<User> UserDao::query(const std::string &_username)
 {
-    std::string escaped_username = escape_string(_username);
+    PreparedStmt stmt(db.get_conn(), "SELECT id, username, password FROM users WHERE username = ?");
+    const char *username = _username.c_str();
 
-    MYSQL_RES *res = db.query("SELECT id, username, password FROM users WHERE username = '" + escaped_username + "'");
-    if (!res)
+    MYSQL_BIND input[1] = {};
+    input[0].buffer_type = MYSQL_TYPE_STRING;
+    input[0].buffer = (void *)username;
+    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+
+    if (!stmt.bind_param(input))
     {
         return std::nullopt;
     }
 
-    MYSQL_ROW row = mysql_fetch_row(res);
-    if (row == nullptr)
+    int id = 0;
+    char username_buffer[256];
+    char password_buffer[256];
+    unsigned long username_len, password_len;
+    MYSQL_BIND output[3] = {};
+    output[0].buffer_type = MYSQL_TYPE_LONG;
+    output[0].buffer = (void *)&id;
+    output[0].buffer_length = sizeof(id);
+
+    output[1].buffer_type = MYSQL_TYPE_STRING;
+    output[1].buffer = username_buffer;
+    output[1].buffer_length = sizeof(username_buffer);
+    output[1].length = &username_len;
+
+    output[2].buffer_type = MYSQL_TYPE_STRING;
+    output[2].buffer = password_buffer;
+    output[2].buffer_length = sizeof(password_buffer);
+    output[2].length = &password_len;
+
+    if (!stmt.bind_result(output))
     {
-        mysql_free_result(res);
         return std::nullopt;
     }
 
-    User user;
-    user.id = std::stoi(row[0]);
-    user.username = row[1];
-    user.password = row[2];
-    mysql_free_result(res);
-    return user;
+    return stmt.fetch_one<User>([&](MYSQL_STMT *stmt) -> User
+                                {
+        User user;
+        user.id = id;
+        user.username = std::string(username_buffer, username_len);
+        user.password = std::string(password_buffer, password_len);
+        return user; });
 }
 
 bool UserDao::update(const User &_user)
 {
-    User escaped_user = escape_user(_user);
+    constexpr const char* sql = "UPDATE users SET password = ? WHERE username = ?";
+    PreparedStmt stmt(db.get_conn(), sql);
 
-    std::ostringstream sql;
-    sql << "UPDATE users SET password = '" << escaped_user.password << "' WHERE username = '" << escaped_user.username << "'";
-    return db.execute(sql.str());
+    const char *username = _user.username.c_str();
+    const char *password = _user.password.c_str();
+
+    MYSQL_BIND input[2] = {};
+    input[0].buffer_type = MYSQL_TYPE_STRING;
+    input[0].buffer = (void *)username;
+    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+
+    input[1].buffer_type = MYSQL_TYPE_STRING;
+    input[1].buffer = (void *)password;
+    input[1].buffer_length = static_cast<unsigned long>(strlen(password));
+
+    if (!stmt.bind_param(input))
+    {
+        return false;
+    }
+    return stmt.execute();
 }
 
 bool UserDao::remove(const std::string &_username)
 {
-    std::string escaped_username = escape_string(_username);
+    constexpr const char* sql = "DELETE FROM users WHERE username = ?";
+    PreparedStmt stmt(db.get_conn(), sql);
+    const char *username = _username.c_str();
 
-    std::ostringstream sql;
-    sql << "DELETE FROM users WHERE username = '" << escaped_username << "'";
-    return db.execute(sql.str());
+    MYSQL_BIND input[1] = {};
+    input[0].buffer_type = MYSQL_TYPE_STRING;
+    input[0].buffer = (void *)username;
+    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+
+    if (!stmt.bind_param(input))
+    {
+        return false;
+    }
+    return stmt.execute();
 }
 
 User UserDao::escape_user(const User &_user)

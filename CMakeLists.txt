@@ -25,7 +25,6 @@ set(MYSQL_LIB_DIR "C:/Program Files/MySQL/MySQL Server 8.0/lib")
 find_package(OpenSSL REQUIRED)
 find_package(jwt-cpp CONFIG REQUIRED)
 
-
 # 可执行文件
 add_executable(AccountingServer
     AccountingServer.cpp
@@ -36,6 +35,7 @@ add_executable(AccountingServer
     src/user_dao.cpp
     src/token_manager.cpp
     src/validator.cpp
+    src/PreparedStmt.cpp
     third_party/inih/INIReader.cpp
     third_party/inih/ini.c
 )

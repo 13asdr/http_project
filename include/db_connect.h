@@ -17,6 +17,11 @@ public:
     bool execute(const std::string &_sql);
     std::string escape_string(const std::string &_input);
 
+    inline MYSQL *get_conn() const
+    {
+        return conn;
+    }
+
 private:
     MYSQL *conn;
 };
