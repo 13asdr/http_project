@@ -42,6 +42,11 @@ std::optional<User> UserDao::query(const std::string &_username)
         return std::nullopt;
     }
 
+    if (!stmt.execute())
+    {
+        return std::nullopt;
+    }
+
     int id = 0;
     char username_buffer[256];
     char password_buffer[256];

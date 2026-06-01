@@ -13,7 +13,6 @@
 #include "PreparedStmt.h"
 #include "create_bind_helper.h"
 
-
 struct Limit
 {
     int page;
