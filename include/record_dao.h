@@ -11,37 +11,8 @@
 #include "db_connect.h"
 #include "logger.h"
 #include "PreparedStmt.h"
+#include "create_bind_helper.h"
 
-namespace createBindHelper
-{
-    inline MYSQL_BIND create_input_bind(const char *_parameter, enum_field_types _type)
-    {
-        MYSQL_BIND input;
-        input.buffer_type = MYSQL_TYPE_STRING;
-        input.buffer = (void *)_parameter;
-        input.buffer_length = static_cast<unsigned long>(strlen(_parameter));
-        return input;
-    }
-
-    template <typename T>
-    MYSQL_BIND create_input_bind(T &_parameter, enum_field_types _type)
-    {
-        MYSQL_BIND input;
-        switch (_type)
-        {
-        case MYSQL_TYPE_LONG:
-            input.buffer_type = MYSQL_TYPE_LONG;
-            input.buffer = (void *)&_parameter;
-            break;
-        case MYSQL_TYPE_DOUBLE:
-            input.buffer_type = MYSQL_TYPE_DOUBLE;
-            input.buffer = (void *)&_parameter;
-            break;
-        }
-        return input;
-    }
-
-}
 
 struct Limit
 {
@@ -68,27 +39,13 @@ struct RecordBindBufferInput
     RecordBindBufferInput(const Record &_record)
     {
         input.reserve(6);
-        input[0].buffer_type = MYSQL_TYPE_DOUBLE;
-        input[0].buffer = (void *)&_record.amount;
 
-        input[1].buffer_type = MYSQL_TYPE_STRING;
-        input[1].buffer = (void *)_record.note.c_str();
-        input[1].buffer_length = static_cast<unsigned long>(_record.note.length());
-
-        input[2].buffer_type = MYSQL_TYPE_STRING;
-        input[2].buffer = (void *)_record.type.c_str();
-        input[2].buffer_length = static_cast<unsigned long>(_record.type.length());
-
-        input[3].buffer_type = MYSQL_TYPE_STRING;
-        input[3].buffer = (void *)_record.time.c_str();
-        input[3].buffer_length = static_cast<unsigned long>(_record.time.length());
-
-        input[4].buffer_type = MYSQL_TYPE_STRING;
-        input[4].buffer = (void *)_record.category.c_str();
-        input[4].buffer_length = static_cast<unsigned long>(_record.category.length());
-
-        input[5].buffer_type = MYSQL_TYPE_LONG;
-        input[5].buffer = (void *)&_record.user_id;
+        input.push_back(createBindHelper::create_input_bind(_record.amount, MYSQL_TYPE_DOUBLE));
+        input.push_back(createBindHelper::create_input_bind(_record.note, MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.type, MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.time, MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.category, MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.user_id, MYSQL_TYPE_DOUBLE));
     }
 
     void push_back(int &_parameter)

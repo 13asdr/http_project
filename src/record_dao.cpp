@@ -81,8 +81,9 @@ std::vector<Record> RecordDao::list_by_month(const std::string &_month_type, int
     input.push_back(createBindHelper::create_input_bind(_user_id, MYSQL_TYPE_LONG));
 
     int page = _limit.page;
+    int page_size = _limit.page_size;
     int offset = (_limit.page - 1) * _limit.page_size;
-    input.push_back(createBindHelper::create_input_bind(page, MYSQL_TYPE_LONG));
+    input.push_back(createBindHelper::create_input_bind(page_size, MYSQL_TYPE_LONG));
     input.push_back(createBindHelper::create_input_bind(offset, MYSQL_TYPE_LONG));
 
     if (!stmt.bind_param(input.data()) || !stmt.execute())
@@ -122,6 +123,7 @@ std::map<std::string, double> RecordDao::stat_by_category(int _user_id)
     output[0].buffer_type = MYSQL_TYPE_STRING;
     output[0].buffer = (void *)category;
     output[0].buffer_length = sizeof(category);
+    output[0].length = &category_len;
     output[1].buffer_type = MYSQL_TYPE_DOUBLE;
     output[1].buffer = (void *)&total;
     output[1].is_null = nullptr;
@@ -158,9 +160,9 @@ std::vector<Record> RecordDao::search(const std::string &_keyword, int _user_id,
     input.push_back(createBindHelper::create_input_bind(_user_id, MYSQL_TYPE_LONG));
 
     int page = _limit.page;
-    input.push_back(createBindHelper::create_input_bind(page, MYSQL_TYPE_LONG));
-
+    int page_size = _limit.page_size;
     int offset = (_limit.page - 1) * _limit.page_size;
+    input.push_back(createBindHelper::create_input_bind(page_size, MYSQL_TYPE_LONG));
     input.push_back(createBindHelper::create_input_bind(offset, MYSQL_TYPE_LONG));
 
     if (!stmt.bind_param(input.data()) || !stmt.execute())
@@ -196,9 +198,10 @@ std::vector<Record> RecordDao::filter(const std::string &_keyword, const std::st
 
     std::vector<MYSQL_BIND> input;
     input.reserve(5);
+
+    std::string keyword = "%" + _keyword + "%";
     if (!_keyword.empty())
     {
-        std::string keyword = "%" + _keyword + "%";
         const char *keyword_char = keyword.c_str();
         input.push_back(createBindHelper::create_input_bind(keyword_char, MYSQL_TYPE_STRING));
     }
@@ -256,9 +259,9 @@ int RecordDao::count_records(int _user_id, const std::string &_month_type, const
         const char *month_type = _month_type.c_str();
         input.push_back(createBindHelper::create_input_bind(month_type, MYSQL_TYPE_STRING));
     }
+    std::string keyword = "%" + _keyword + "%";
     if (!_keyword.empty())
     {
-        std::string keyword = "%" + _keyword + "%";
         const char *keyword_char = keyword.c_str();
         input.push_back(createBindHelper::create_input_bind(keyword_char, MYSQL_TYPE_STRING));
     }
@@ -289,7 +292,7 @@ int RecordDao::count_records(int _user_id, const std::string &_month_type, const
 bool RecordDao::update(int _id, const Record &_record, int _user_id)
 {
 
-    constexpr const char *sql = "UPDATE records set amount = ? , note = ? , type = ? , time = ? , category = ? , user_id = ? , WHERE id = ? AND user_id = ? ";
+    constexpr const char *sql = "UPDATE records set amount = ? , note = ? , type = ? , time = ? , category = ? , user_id = ? WHERE id = ? AND user_id = ? ";
 
     PreparedStmt stmt(db.get_conn(), sql);
 
@@ -308,7 +311,7 @@ bool RecordDao::update(int _id, const Record &_record, int _user_id)
 bool RecordDao::remove(int _id, int _user_id)
 {
 
-    constexpr const char *sql = "DELETE FROM records WHERE id = ? AND user_id = _user_id ";
+    constexpr const char *sql = "DELETE FROM records WHERE id = ? AND user_id = ? ";
     PreparedStmt stmt(db.get_conn(), sql);
 
     std::vector<MYSQL_BIND> input;

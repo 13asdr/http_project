@@ -7,7 +7,6 @@
 #include <functional>
 #include <vector>
 
-#include "record_dao.h"
 
 class PreparedStmt
 {

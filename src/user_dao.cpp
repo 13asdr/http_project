@@ -8,7 +8,7 @@ UserDao::~UserDao() {}
 
 bool UserDao::add(const User &_user)
 {
-    constexpr const char* sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+    constexpr const char *sql = "INSERT INTO users (username, password) VALUES (?, ?)";
     PreparedStmt stmt(db.get_conn(), sql);
 
     const char *username = _user.username.c_str();
@@ -35,12 +35,9 @@ std::optional<User> UserDao::query(const std::string &_username)
     PreparedStmt stmt(db.get_conn(), "SELECT id, username, password FROM users WHERE username = ?");
     const char *username = _username.c_str();
 
-    MYSQL_BIND input[1] = {};
-    input[0].buffer_type = MYSQL_TYPE_STRING;
-    input[0].buffer = (void *)username;
-    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+    MYSQL_BIND input = createBindHelper::create_input_bind(username, MYSQL_TYPE_STRING);
 
-    if (!stmt.bind_param(input))
+    if (!stmt.bind_param(&input))
     {
         return std::nullopt;
     }
@@ -49,53 +46,45 @@ std::optional<User> UserDao::query(const std::string &_username)
     char username_buffer[256];
     char password_buffer[256];
     unsigned long username_len, password_len;
-    MYSQL_BIND output[3] = {};
-    output[0].buffer_type = MYSQL_TYPE_LONG;
-    output[0].buffer = (void *)&id;
-    output[0].buffer_length = sizeof(id);
 
-    output[1].buffer_type = MYSQL_TYPE_STRING;
-    output[1].buffer = username_buffer;
-    output[1].buffer_length = sizeof(username_buffer);
-    output[1].length = &username_len;
+    std::vector<MYSQL_BIND> output;
+    output.reserve(3);
+    output.push_back(createBindHelper::create_output_bind(id, MYSQL_TYPE_LONG));
+    output.push_back(createBindHelper::create_output_bind(username_buffer, username_len, MYSQL_TYPE_STRING));
+    output.push_back(createBindHelper::create_output_bind(password_buffer, password_len, MYSQL_TYPE_STRING));
 
-    output[2].buffer_type = MYSQL_TYPE_STRING;
-    output[2].buffer = password_buffer;
-    output[2].buffer_length = sizeof(password_buffer);
-    output[2].length = &password_len;
-
-    if (!stmt.bind_result(output))
+    if (!stmt.bind_result(output.data()))
     {
         return std::nullopt;
     }
 
-    return stmt.fetch_one<User>([&](MYSQL_STMT *stmt) -> User
-                                {
-        User user;
-        user.id = id;
-        user.username = std::string(username_buffer, username_len);
-        user.password = std::string(password_buffer, password_len);
-        return user; });
+    if (!stmt.fetch_row())
+    {
+        return std::nullopt;
+    }
+
+    User user;
+    user.id = id;
+    user.username = std::string(username_buffer, username_len);
+    user.password = std::string(password_buffer, password_len);
+    return user;
 }
 
 bool UserDao::update(const User &_user)
 {
-    constexpr const char* sql = "UPDATE users SET password = ? WHERE username = ?";
+    constexpr const char *sql = "UPDATE users SET password = ? WHERE username = ?";
     PreparedStmt stmt(db.get_conn(), sql);
 
-    const char *username = _user.username.c_str();
     const char *password = _user.password.c_str();
+    const char *username = _user.username.c_str();
 
-    MYSQL_BIND input[2] = {};
-    input[0].buffer_type = MYSQL_TYPE_STRING;
-    input[0].buffer = (void *)username;
-    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+    std::vector<MYSQL_BIND> input;
+    input.reserve(2);
 
-    input[1].buffer_type = MYSQL_TYPE_STRING;
-    input[1].buffer = (void *)password;
-    input[1].buffer_length = static_cast<unsigned long>(strlen(password));
+    input.push_back(createBindHelper::create_input_bind(password, MYSQL_TYPE_STRING));
+    input.push_back(createBindHelper::create_input_bind(username, MYSQL_TYPE_STRING));
 
-    if (!stmt.bind_param(input))
+    if (!stmt.bind_param(input.data()))
     {
         return false;
     }
@@ -104,7 +93,7 @@ bool UserDao::update(const User &_user)
 
 bool UserDao::remove(const std::string &_username)
 {
-    constexpr const char* sql = "DELETE FROM users WHERE username = ?";
+    constexpr const char *sql = "DELETE FROM users WHERE username = ?";
     PreparedStmt stmt(db.get_conn(), sql);
     const char *username = _username.c_str();
 

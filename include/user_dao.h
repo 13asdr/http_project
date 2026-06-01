@@ -11,6 +11,9 @@
 #include "crypto.h"
 #include "db_connect.h"
 #include "PreparedStmt.h"
+#include "create_bind_helper.h"
+
+
 
 struct User
 {
