@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "jwt-cpp",
+    "openssl",
+    "nlohmann-json"
+  ]
+}

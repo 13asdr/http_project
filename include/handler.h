@@ -3,11 +3,12 @@
 
 #include "httplib.h"
 #include "nlohmann/json.hpp"
-#include "RecordDao.h"
-#include "UserDao.h"
-#include "TokenManager.h"
-
-#include <iostream>
+#include "record_dao.h"
+#include "user_dao.h"
+#include "token_manager.h"
+#include "validator.h"
+#include "logger.h"
+#include "status.h"
 
 class Handler
 {
@@ -16,37 +17,32 @@ public:
     using Response = httplib::Response;
     using Json = nlohmann::json;
 
-    // record 相关接口
-    static void Add(RecordDao &dao, const Request &req, Response &res);
-    static void List(RecordDao &dao, const Request &req, Response &res);
-    static void StatByCategory(RecordDao &dao, const Request &req, Response &res);
-    static void ListByMonth(RecordDao &dao, const Request &req, Response &res); // 按月份查询 // 暂时删除 , 不支持分页
-    static void Search(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词   //暂时删除 , 不支持分页
-    static void Filter(RecordDao &dao, const Request &req, Response &res);      // 模糊查询备注关键词 AND 月份筛选
-    static void Update(RecordDao &dao, const Request &req, Response &res);      // 更新函数
-    static void Remove(RecordDao &dao, const Request &req, Response &res);      // 删除记录
-    static void Export(RecordDao &dao, const Request &req, Response &res);      // 导出记录
+    static void add_record(RecordDao &_dao, const Request &_req, Response &_res);
+    static void list_records(RecordDao &_dao, const Request &_req, Response &_res);
+    static void stat_by_category(RecordDao &_dao, const Request &_req, Response &_res);
+    static void filter_records(RecordDao &_dao, const Request &_req, Response &_res);
+    static void update_record(RecordDao &_dao, const Request &_req, Response &_res);
+    static void remove_record(RecordDao &_dao, const Request &_req, Response &_res);
+    static void export_records(RecordDao &_dao, const Request &_req, Response &_res);
 
-    // user 相关接口
-    static void Add(UserDao &dao, const Request &req, Response &res);
-    static void Update(UserDao &dao, const Request &req, Response &res);
-    static void Remove(UserDao &dao, const Request &req, Response &res);
+    static void add_user(UserDao &_dao, const Request &_req, Response &_res);
+    static void update_user(UserDao &_dao, const Request &_req, Response &_res);
+    static void remove_user(UserDao &_dao, const Request &_req, Response &_res);
 
-    // token 相关接口
-    static void Login(UserDao &dao, const Request &req, Response &res);
-    static void Register(UserDao &dao, const Request &req, Response &res);
-    static void Logout(const Request &req, Response &res);
+    static void login_user(UserDao &_dao, const Request &_req, Response &_res);
+    static void register_user(UserDao &_dao, const Request &_req, Response &_res);
+    static void logout_user(const Request &_req, Response &_res);
+
+    static void send_success(Response &_res, const Json &_data, const std::string &_message);
+    static void send_error(Response &_res, HttpStatus _status, MessageCode _code, const std::string &_message);
 
 private:
-    static int authCheck(const Request &req, Response &res); // 认证检查
-    static limit JsonToLimit(Json &j , limit &l);                       // JSON转换为分页参数
-    static void JsonToRecord(Json &j, Record &r);
-    static void RecordToJson(const Record &r, Json &j);
-    static void JsonToUser(Json &j, User &u);
-    // static void UserToJson(const User &u, Json &j);
-
-    static limit getLimit(const Request &req);
-
+    static int auth_check(const Request &_req, Response &_res);
+    static ValidationResult extract_bearer_token(const Request &_req, std::string &_token);
+    static void handle_internal_error(const Request &_req, Response &_res, const std::exception &_e);
+    static void json_to_record(Json &_j, Record &_r);
+    static void record_to_json(const Record &_r, Json &_j);
+    static void json_to_user(Json &_j, User &_u);
 };
 
 #endif

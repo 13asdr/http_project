@@ -1,31 +1,46 @@
 #pragma once
-#include <string>
-#include <iostream>
-#include "inih/ini.h"
-#include "inih/INIReader.h"
 
-struct DBconfig
+#include <string>
+#include <stdexcept>
+
+#include "inih/INIReader.h"
+#include "inih/ini.h"
+
+struct DbConfig
 {
     std::string host;
     std::string user;
     std::string password;
     std::string database;
-    size_t port;
-    const char *__unix_socket = nullptr;
-    size_t __client_flag = 0;
+    int port;
+    const char *unix_socket = nullptr;
+    unsigned long client_flag = 0;
 };
 
 struct ServerConfig
 {
     std::string host;
-    size_t port;
+    int port;
 };
 
 class Config
 {
 public:
-    DBconfig db;
+    DbConfig db;
     ServerConfig server;
 
-    Config(const std::string &config);
+    explicit Config(const std::string &_config);
+};
+
+class JwtConfig
+{
+public:
+    explicit JwtConfig(const std::string &_config_file);
+
+    void load_config(const std::string &_config_file);
+
+    const std::string &get_secret_key() const { return secret_key; }
+
+private:
+    std::string secret_key;
 };
