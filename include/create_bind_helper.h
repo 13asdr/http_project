@@ -29,12 +29,12 @@ namespace createBindHelper
         return input;
     }
 
-    inline MYSQL_BIND create_output_bind(char *_parameter, unsigned long &_length, enum_field_types _type)
+    inline MYSQL_BIND create_output_bind(char *_parameter, size_t _buffer_size, unsigned long &_length, enum_field_types _type)
     {
         MYSQL_BIND output{};
         output.buffer_type = MYSQL_TYPE_STRING;
         output.buffer = (void *)_parameter;
-        output.buffer_length = static_cast<unsigned long>(strlen(_parameter));
+        output.buffer_length = static_cast<unsigned long>(_buffer_size);
         output.length = &_length;
         return output;
     }

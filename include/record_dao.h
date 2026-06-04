@@ -76,10 +76,10 @@ struct RecordBindBufferOutput
 
         output.push_back(createBindHelper::create_output_bind<int>(id, MYSQL_TYPE_LONG));
         output.push_back(createBindHelper::create_output_bind<double>(amount, MYSQL_TYPE_DOUBLE));
-        output.push_back(createBindHelper::create_output_bind(note,note_len, MYSQL_TYPE_STRING));
-        output.push_back(createBindHelper::create_output_bind(type,type_len, MYSQL_TYPE_STRING));
-        output.push_back(createBindHelper::create_output_bind(time, time_len, MYSQL_TYPE_STRING));
-        output.push_back(createBindHelper::create_output_bind(category, category_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(note, sizeof(note), note_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(type, sizeof(type), type_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(time, sizeof(time), time_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(category, sizeof(category), category_len, MYSQL_TYPE_STRING));
         output.push_back(createBindHelper::create_output_bind<int>(user_id, MYSQL_TYPE_LONG));
     }
 

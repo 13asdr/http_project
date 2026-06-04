@@ -14,16 +14,11 @@ bool UserDao::add(const User &_user)
     const char *username = _user.username.c_str();
     const char *password = _user.password.c_str();
 
-    MYSQL_BIND input[2] = {};
-    input[0].buffer_type = MYSQL_TYPE_STRING;
-    input[0].buffer = (void *)username;
-    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+    std::vector<MYSQL_BIND> input;
+    input.push_back(createBindHelper::create_input_bind(username, MYSQL_TYPE_STRING));
+    input.push_back(createBindHelper::create_input_bind(password, MYSQL_TYPE_STRING));
 
-    input[1].buffer_type = MYSQL_TYPE_STRING;
-    input[1].buffer = (void *)password;
-    input[1].buffer_length = static_cast<unsigned long>(strlen(password));
-
-    if (!stmt.bind_param(input))
+    if (!stmt.bind_param(input.data()))
     {
         return false;
     }
@@ -55,8 +50,8 @@ std::optional<User> UserDao::query(const std::string &_username)
     std::vector<MYSQL_BIND> output;
     output.reserve(3);
     output.push_back(createBindHelper::create_output_bind(id, MYSQL_TYPE_LONG));
-    output.push_back(createBindHelper::create_output_bind(username_buffer, username_len, MYSQL_TYPE_STRING));
-    output.push_back(createBindHelper::create_output_bind(password_buffer, password_len, MYSQL_TYPE_STRING));
+    output.push_back(createBindHelper::create_output_bind(username_buffer, sizeof(username_buffer), username_len, MYSQL_TYPE_STRING));
+    output.push_back(createBindHelper::create_output_bind(password_buffer, sizeof(password_buffer), password_len, MYSQL_TYPE_STRING));
 
     if (!stmt.bind_result(output.data()))
     {
@@ -102,15 +97,11 @@ bool UserDao::remove(const std::string &_username)
     PreparedStmt stmt(db.get_conn(), sql);
     const char *username = _username.c_str();
 
-    MYSQL_BIND input[1] = {};
-    input[0].buffer_type = MYSQL_TYPE_STRING;
-    input[0].buffer = (void *)username;
-    input[0].buffer_length = static_cast<unsigned long>(strlen(username));
+    MYSQL_BIND input = createBindHelper::create_input_bind(username, MYSQL_TYPE_STRING);
 
-    if (!stmt.bind_param(input))
+    if (!stmt.bind_param(&input))
     {
         return false;
     }
     return stmt.execute();
 }
-
