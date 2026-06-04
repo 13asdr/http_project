@@ -1,12 +1,11 @@
 #pragma once
 
-#include <iostream>
 #include <mysql.h>
 #include <initializer_list>
 #include <optional>
 #include <functional>
 #include <vector>
-
+#include <iostream>
 
 class PreparedStmt
 {
@@ -18,8 +17,7 @@ public:
     bool bind_param(MYSQL_BIND *_input);
     bool execute();
     bool bind_result(MYSQL_BIND *_output);
-    bool fetch_row(); //huo
-
+    bool fetch_row();
     template <typename T>
     std::optional<T> fetch_one(std::function<T(MYSQL_STMT *)> extractor)
     {

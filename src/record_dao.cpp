@@ -24,10 +24,10 @@ std::vector<Record> RecordDao::list_order_by_time_and_id(int _user_id, Limit _li
 
     std::vector<MYSQL_BIND> input;
     input.reserve(3);
-    int page = _limit.page_size;
+    int page_size = _limit.page_size;
     int offset = (_limit.page - 1) * _limit.page_size;
     input.push_back(createBindHelper::create_input_bind(_user_id, MYSQL_TYPE_LONG));
-    input.push_back(createBindHelper::create_input_bind(page, MYSQL_TYPE_LONG));
+    input.push_back(createBindHelper::create_input_bind(page_size, MYSQL_TYPE_LONG));
     input.push_back(createBindHelper::create_input_bind(offset, MYSQL_TYPE_LONG));
 
     if (!stmt.bind_param(input.data()) || !stmt.execute())
@@ -36,7 +36,7 @@ std::vector<Record> RecordDao::list_order_by_time_and_id(int _user_id, Limit _li
     }
 
     RecordBindBufferOutput output_buffer;
-    if (!stmt.bind_result(output_buffer.output))
+    if (!stmt.bind_result(output_buffer.output.data()))
     {
         return {};
     }
@@ -58,7 +58,7 @@ std::vector<Record> RecordDao::list_order_by_id(int _user_id)
         return {};
     }
     RecordBindBufferOutput output_buffer;
-    if (!stmt.bind_result(output_buffer.output))
+    if (!stmt.bind_result(output_buffer.output.data()))
     {
         return {};
     }
@@ -80,7 +80,6 @@ std::vector<Record> RecordDao::list_by_month(const std::string &_month_type, int
 
     input.push_back(createBindHelper::create_input_bind(_user_id, MYSQL_TYPE_LONG));
 
-    int page = _limit.page;
     int page_size = _limit.page_size;
     int offset = (_limit.page - 1) * _limit.page_size;
     input.push_back(createBindHelper::create_input_bind(page_size, MYSQL_TYPE_LONG));
@@ -92,7 +91,7 @@ std::vector<Record> RecordDao::list_by_month(const std::string &_month_type, int
     }
 
     RecordBindBufferOutput output_buffer;
-    if (!stmt.bind_result(output_buffer.output))
+    if (!stmt.bind_result(output_buffer.output.data()))
     {
         return {};
     }
@@ -159,7 +158,6 @@ std::vector<Record> RecordDao::search(const std::string &_keyword, int _user_id,
 
     input.push_back(createBindHelper::create_input_bind(_user_id, MYSQL_TYPE_LONG));
 
-    int page = _limit.page;
     int page_size = _limit.page_size;
     int offset = (_limit.page - 1) * _limit.page_size;
     input.push_back(createBindHelper::create_input_bind(page_size, MYSQL_TYPE_LONG));
@@ -171,7 +169,7 @@ std::vector<Record> RecordDao::search(const std::string &_keyword, int _user_id,
     }
 
     RecordBindBufferOutput output_buffer;
-    if (!stmt.bind_result(output_buffer.output))
+    if (!stmt.bind_result(output_buffer.output.data()))
     {
         return {};
     }
@@ -226,7 +224,7 @@ std::vector<Record> RecordDao::filter(const std::string &_keyword, const std::st
     }
 
     RecordBindBufferOutput output_buffer;
-    if (!stmt.bind_result(output_buffer.output))
+    if (!stmt.bind_result(output_buffer.output.data()))
     {
         return {};
     }
@@ -273,9 +271,7 @@ int RecordDao::count_records(int _user_id, const std::string &_month_type, const
     }
 
     int count = 0;
-    MYSQL_BIND output;
-    output.buffer_type = MYSQL_TYPE_LONG;
-    output.buffer = &count;
+    MYSQL_BIND output = createBindHelper::create_output_bind(count, MYSQL_TYPE_LONG);
 
     if (!stmt.bind_result(&output))
     {

@@ -40,11 +40,11 @@ struct RecordBindBufferInput
         input.reserve(6);
 
         input.push_back(createBindHelper::create_input_bind(_record.amount, MYSQL_TYPE_DOUBLE));
-        input.push_back(createBindHelper::create_input_bind(_record.note, MYSQL_TYPE_STRING));
-        input.push_back(createBindHelper::create_input_bind(_record.type, MYSQL_TYPE_STRING));
-        input.push_back(createBindHelper::create_input_bind(_record.time, MYSQL_TYPE_STRING));
-        input.push_back(createBindHelper::create_input_bind(_record.category, MYSQL_TYPE_STRING));
-        input.push_back(createBindHelper::create_input_bind(_record.user_id, MYSQL_TYPE_DOUBLE));
+        input.push_back(createBindHelper::create_input_bind(_record.note.c_str(), MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.type.c_str(), MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.time.c_str(), MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.category.c_str(), MYSQL_TYPE_STRING));
+        input.push_back(createBindHelper::create_input_bind(_record.user_id, MYSQL_TYPE_LONG));
     }
 
     void push_back(int &_parameter)
@@ -68,34 +68,19 @@ struct RecordBindBufferOutput
     double amount;
     int user_id;
 
-    MYSQL_BIND output[7] = {};
+    std::vector<MYSQL_BIND> output;
 
     RecordBindBufferOutput()
     {
-        memset(output, 0, sizeof(output));
+        output.reserve(7);
 
-        output[0].buffer_type = MYSQL_TYPE_LONG;
-        output[0].buffer = (void *)&id;
-        output[1].buffer_type = MYSQL_TYPE_DOUBLE;
-        output[1].buffer = (void *)&amount;
-        output[2].buffer_type = MYSQL_TYPE_STRING;
-        output[2].buffer = note;
-        output[2].buffer_length = sizeof(note);
-        output[2].length = &note_len;
-        output[3].buffer_type = MYSQL_TYPE_STRING;
-        output[3].buffer = type;
-        output[3].buffer_length = sizeof(type);
-        output[3].length = &type_len;
-        output[4].buffer_type = MYSQL_TYPE_STRING;
-        output[4].buffer = time;
-        output[4].buffer_length = sizeof(time);
-        output[4].length = &time_len;
-        output[5].buffer_type = MYSQL_TYPE_STRING;
-        output[5].buffer = category;
-        output[5].buffer_length = sizeof(category);
-        output[5].length = &category_len;
-        output[6].buffer_type = MYSQL_TYPE_LONG;
-        output[6].buffer = (void *)&user_id;
+        output.push_back(createBindHelper::create_output_bind<int>(id, MYSQL_TYPE_LONG));
+        output.push_back(createBindHelper::create_output_bind<double>(amount, MYSQL_TYPE_DOUBLE));
+        output.push_back(createBindHelper::create_output_bind(note,note_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(type,type_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(time, time_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind(category, category_len, MYSQL_TYPE_STRING));
+        output.push_back(createBindHelper::create_output_bind<int>(user_id, MYSQL_TYPE_LONG));
     }
 
     Record to_record() const

@@ -34,7 +34,7 @@ namespace createBindHelper
         MYSQL_BIND output{};
         output.buffer_type = MYSQL_TYPE_STRING;
         output.buffer = (void *)_parameter;
-        output.buffer_length = sizeof(_parameter);
+        output.buffer_length = static_cast<unsigned long>(strlen(_parameter));
         output.length = &_length;
         return output;
     }

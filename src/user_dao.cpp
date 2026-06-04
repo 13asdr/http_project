@@ -114,16 +114,3 @@ bool UserDao::remove(const std::string &_username)
     return stmt.execute();
 }
 
-User UserDao::escape_user(const User &_user)
-{
-    User escaped_user;
-    escaped_user.id = _user.id;
-    escaped_user.username = escape_string(_user.username);
-    escaped_user.password = escape_string(_user.password);
-    return escaped_user;
-}
-
-std::string UserDao::escape_string(const std::string &_input)
-{
-    return db.escape_string(_input);
-}
